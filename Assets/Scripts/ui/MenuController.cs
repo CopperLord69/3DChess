@@ -9,8 +9,8 @@ namespace Assets.Scripts.ui.controllers {
         [SerializeField]
         public GameObject menu;
 
-        [HideInInspector]
-        public EscapeDemux escDemux;
+
+        private EscapeDemux escDemux;
 
         private void Awake() {
             escDemux = new EscapeDemux();
