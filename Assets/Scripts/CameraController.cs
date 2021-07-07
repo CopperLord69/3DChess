@@ -20,7 +20,7 @@ namespace Assets.Scripts {
         }
 
         private void RotateCamera(MouseEvent mouseEvent) {
-            cameraObject.transform.Rotate(0, mouseEvent.axisX * Time.deltaTime * 100, 0);
+            cameraObject.transform.Rotate(0, mouseEvent.axisX * Time.deltaTime * speed, 0);
         }
     }
 
