@@ -16,7 +16,7 @@ namespace Assets.Scripts {
         private void Start() {
             var mouseToken = new Token();
             mouseMoveEvent.handler.AddListener(mouseToken, RotateCamera);
-            
+
         }
 
         private void RotateCamera(MouseEvent mouseEvent) {

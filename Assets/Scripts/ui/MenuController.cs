@@ -18,25 +18,13 @@ namespace Assets.Scripts.ui.controllers {
         public void ToggleMenu(EscEvent escapeEvent) {
 
             menu.SetActive(!menu.activeSelf);
-            if(menu.activeSelf)
-            {
-                GameState.currentGameState = CurrentGameState.Paused;
+            if (menu.activeSelf) {
                 Time.timeScale = 0;
-            }
-            else
-            {
-                GameState.currentGameState = CurrentGameState.Processing;
+            } else {
                 Time.timeScale = 1;
 
             }
         }
-
-        //private void Update() {
-        //    if (Input.GetKeyDown(KeyCode.Escape))
-        //    {
-        //        escEvent.handler.Invoke(new EscEvent { Button = new Key { pressed = true, released = false } });
-        //    }
-        //}
 
     }
 

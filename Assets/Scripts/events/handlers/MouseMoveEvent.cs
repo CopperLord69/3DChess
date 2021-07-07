@@ -2,7 +2,7 @@ using ev;
 using UnityEngine;
 
 namespace Assets.Scripts.events.handlers {
-    public class MouseMoveEvent : MonoBehaviour{
+    public class MouseMoveEvent : MonoBehaviour {
         public Event<MouseEvent> handler;
 
         private void Awake() {
