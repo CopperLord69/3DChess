@@ -1,5 +1,5 @@
 using Assets.Scripts.events;
-using Assets.Scripts.events.demuxes;
+using Assets.Scripts.events.handlers;
 using ev;
 using UnityEngine;
 
@@ -9,26 +9,25 @@ namespace Assets.Scripts.ui.controllers {
         [SerializeField]
         public GameObject menu;
 
-
-        private EscapeDemux escDemux;
+        private EscapeEvent escEvent;
 
         private void Awake() {
-            escDemux = new EscapeDemux();
+            escEvent = new EscapeEvent();
             Token t = new Token();
-            escDemux.demux.Register(t, ToggleMenu);
+            escEvent.handler.AddListener(t, ToggleMenu);
+        }
+        public void ToggleMenu(EscEvent escapeEvent) {
+
+            menu.SetActive(!menu.activeSelf);
         }
 
         private void Update() {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                escDemux.demux.Push(new EscEvent { Button = new Key { pressed = true, released = false } });
+                escEvent.handler.Invoke(new EscEvent { Button = new Key { pressed = true, released = false } });
             }
         }
 
-        public void ToggleMenu(EscEvent escapeEvent) {
-
-            menu.SetActive(!menu.activeSelf);
-        }
     }
 
 }
