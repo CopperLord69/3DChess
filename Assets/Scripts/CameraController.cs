@@ -8,29 +8,19 @@ namespace Assets.Scripts {
 
         [SerializeField]
         private GameObject cameraObject;
+        [SerializeField]
+        private MouseMoveEvent mouseMoveEvent;
+        public float speed;
 
-        private MouseMoveEvent mouseMoveEvent = new MouseMoveEvent();
-        private bool menuNotOpened = true;
 
-        private void Awake() {
+        private void Start() {
             var mouseToken = new Token();
             mouseMoveEvent.handler.AddListener(mouseToken, RotateCamera);
             
         }
 
-        private void Update() {
-            if (menuNotOpened)
-            {
-                var mouseDeltaX = Input.GetAxis("Mouse X");
-                if (mouseDeltaX != 0)
-                {
-                    mouseMoveEvent.handler.Invoke(new MouseEvent { axisX = mouseDeltaX, axisY = 0 });
-                }
-            }
-        }
-
         private void RotateCamera(MouseEvent mouseEvent) {
-            cameraObject.transform.Rotate(0, mouseEvent.axisX, 0);
+            cameraObject.transform.Rotate(0, mouseEvent.axisX * Time.deltaTime * 100, 0);
         }
     }
 

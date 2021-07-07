@@ -8,25 +8,35 @@ namespace Assets.Scripts.ui.controllers {
 
         [SerializeField]
         public GameObject menu;
-
+        [SerializeField]
         private EscapeEvent escEvent;
 
-        private void Awake() {
-            escEvent = new EscapeEvent();
+        private void Start() {
             Token t = new Token();
             escEvent.handler.AddListener(t, ToggleMenu);
         }
         public void ToggleMenu(EscEvent escapeEvent) {
 
             menu.SetActive(!menu.activeSelf);
-        }
-
-        private void Update() {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if(menu.activeSelf)
             {
-                escEvent.handler.Invoke(new EscEvent { Button = new Key { pressed = true, released = false } });
+                GameState.currentGameState = CurrentGameState.Paused;
+                Time.timeScale = 0;
+            }
+            else
+            {
+                GameState.currentGameState = CurrentGameState.Processing;
+                Time.timeScale = 1;
+
             }
         }
+
+        //private void Update() {
+        //    if (Input.GetKeyDown(KeyCode.Escape))
+        //    {
+        //        escEvent.handler.Invoke(new EscEvent { Button = new Key { pressed = true, released = false } });
+        //    }
+        //}
 
     }
 

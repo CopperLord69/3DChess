@@ -1,10 +1,14 @@
 using Assets.Scripts.chess;
 using System.Collections.Generic;
 
-public struct GameState 
-{
-    public FigureColor currentPlayer;
-    public List<ChessFigure> blackFigures;
-    public List<ChessFigure> whiteFigures;
-    public int movesWithoutKills;
+namespace Assets.Scripts {
+    public static class GameState {
+        public static CurrentGameState currentGameState;
+        public static FigureColor currentPlayer;
+        public static List<ChessFigure> blackFigures;
+        public static List<ChessFigure> whiteFigures;
+        public static int movesWithoutKills;
+    }
+
 }
+
