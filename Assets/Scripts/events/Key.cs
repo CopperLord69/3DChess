@@ -1,4 +1,4 @@
-namespace Assets.Scripts.events {
+namespace events {
     public struct Key {
         public bool pressed;
         public bool released;

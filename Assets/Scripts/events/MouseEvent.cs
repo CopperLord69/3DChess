@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.Scripts.events {
+namespace events {
     public struct MouseEvent {
         public float axisX;
         public float axisY;

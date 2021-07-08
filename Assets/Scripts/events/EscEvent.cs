@@ -1,4 +1,4 @@
-namespace Assets.Scripts.events {
+namespace events {
     public struct EscEvent {
         public Key Button;
     }

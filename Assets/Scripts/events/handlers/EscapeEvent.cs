@@ -1,17 +1,17 @@
 using ev;
 using UnityEngine;
 
-namespace Assets.Scripts.events.handlers {
+namespace events.handlers {
     public class EscapeEvent : MonoBehaviour {
-        public Event<EscEvent> handler;
+        public Demux<EscEvent> handler;
 
         private void Awake() {
-            handler = new Event<EscEvent>();
+            handler = new Demux<EscEvent>();
         }
 
         private void Update() {
             if (Input.GetKeyDown(KeyCode.Escape)) {
-                handler.Invoke(new EscEvent { Button = new Key { pressed = true, released = false } });
+                handler.Push(new EscEvent { Button = new Key { pressed = true, released = false } });
             }
         }
     }

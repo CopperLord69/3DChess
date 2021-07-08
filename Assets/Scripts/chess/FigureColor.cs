@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.chess {
+﻿namespace chess {
     public enum FigureColor {
         Black,
         White,

@@ -1,7 +1,7 @@
-using Assets.Scripts.chess;
+using chess;
 using UnityEngine;
 
-namespace Assets.Scripts.events {
+namespace events {
     public struct FigurePickEvent {
         public ChessFigure figure;
     }

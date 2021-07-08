@@ -1,153 +1,123 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.chess {
-    public class FiguresController : MonoBehaviour {
+namespace chess {
+    public class FiguresController {
 
-        [SerializeField]
-        private LayerMask raycastLayer;
-        [SerializeField]
-        private List<Material> materials;
-        [SerializeField]
-        private List<FigureColor> colors;
-        [SerializeField]
-        private List<GameObject> figures;
+        private List<ChessFigure> figures;
 
-        private Dictionary<FigureColor, Material> colorMaterials;
+        private string[][] boardPositions;
 
-        private void Start() {
-            colorMaterials = new Dictionary<FigureColor, Material>();
-            for (int i = 0; i < colors.Count && i < materials.Count; i++) {
-                colorMaterials.Add(colors[i], materials[i]);
-            }
-            foreach (var figure in figures) {
-                InitializeFigure(figure);
-            }
+        public FiguresController(List<ChessFigure> figures, string[][] boardPositions) {
+            this.figures = figures;
+            this.boardPositions = boardPositions;
         }
 
-        private void InitializeFigure(GameObject figure) {
-            var figureComponent = figure.GetComponent<ChessFigure>();
-            GetFigureMovePositions(figureComponent);
-            var renderers = figure.GetComponentsInChildren<MeshRenderer>();
-            SetMaterials(renderers, colorMaterials[figureComponent.color]);
-        }
-
-        private void SetMaterials(MeshRenderer[] renderers, Material material) {
-            foreach (var renderer in renderers) {
-                renderer.material = material;
+        public void CalculateFigureMoveDirections(ChessFigure figure) {
+            int x = 0;
+            int y = 0;
+            while (x < boardPositions.GetLength(0)) {
+                while (y < boardPositions.GetLength(1)) {
+                    if (figure.position == boardPositions[x][y]) {
+                        break;
+                    }
+                    y++;
+                }
+                x++;
             }
-        }
-
-        private List<List<Vector3>> GetFigureMovePositions(ChessFigure figure) {
-            List<List<Vector3>> moveDirections = new List<List<Vector3>>();
             switch (figure.type) {
                 case Figure.Pawn: {
                         break;
                     }
                 case Figure.Bishop: {
-                        float distance = 8;
-                        GetForwardLeftPositions(figure, distance);
-                        GetForwardRightPositions(figure, distance);
-                        GetBackLeftPositions(figure, distance);
-                        GetBackRightPositions(figure, distance);
-                        break;
-                    }
-                case Figure.King: {
-                        float distance = 1;
-                        GetForwardLeftPositions(figure, distance);
-                        GetForwardRightPositions(figure, distance);
-                        GetBackLeftPositions(figure, distance);
-                        GetBackRightPositions(figure, distance);
-                        GetForwardPositions(figure, distance);
-                        GetBackPositions(figure, distance);
-                        GetLeftPositions(figure, distance);
-                        GetRightPositions(figure, distance);
-                        break;
-                    }
-                case Figure.Knight: {
-
-                        break;
-                    }
-                case Figure.Queen: {
-                        float distance = 8;
-                        GetForwardLeftPositions(figure, distance);
-                        GetForwardRightPositions(figure, distance);
-                        GetBackLeftPositions(figure, distance);
-                        GetBackRightPositions(figure, distance);
-                        GetForwardPositions(figure, distance);
-                        GetBackPositions(figure, distance);
-                        GetLeftPositions(figure, distance);
-                        GetRightPositions(figure, distance);
+                        int distance = 8;
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
                         break;
                     }
                 case Figure.Rook: {
-                        float distance = 8;
-                        GetForwardPositions(figure, distance);
-                        GetBackPositions(figure, distance);
-                        GetLeftPositions(figure, distance);
-                        GetRightPositions(figure, distance);
+                        int distance = 8;
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
+                        break;
+                    }
+                case Figure.Queen: {
+                        int distance = 8;
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
+                        break;
+                    }
+                case Figure.Knight: {
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1,2 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1,-2 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 2,1 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 2,-1 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1,2 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1,-2 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -2,-1 ,1));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -2,1 ,1));
+                        break;
+                    }
+                case Figure.King: {
+                        int distance = 1;
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
+                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
                         break;
                     }
                 default: {
                         break;
                     }
             }
-            return moveDirections;
+            RemoveAllyPositions(figure);
         }
 
-        private List<Vector3> GetForwardLeftPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, figure.transform.forward + Vector3.left, distance);
-        }
-
-        private List<Vector3> GetForwardRightPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, figure.transform.forward + Vector3.right, distance);
-        }
-
-        private List<Vector3> GetBackLeftPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, -figure.transform.forward + Vector3.left, distance);
-        }
-
-        private List<Vector3> GetBackRightPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, -figure.transform.forward + Vector3.right, distance);
-        }
-
-        private List<Vector3> GetForwardPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, figure.transform.forward, distance);
-        }
-
-        private List<Vector3> GetBackPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, -figure.transform.forward, distance);
-        }
-
-        private List<Vector3> GetRightPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, figure.transform.right, distance);
-        }
-        private List<Vector3> GetLeftPositions(ChessFigure figure, float distance) {
-            return RaycastPositions(figure.position, -figure.transform.right, distance);
-        }
-
-        private List<Vector3> RaycastPositions(Vector3 position, Vector3 direction, float distance) {
-            List<Vector3> positions = new List<Vector3>();
-            Ray ray = new Ray(position, direction);
-            Vector3 rayEnd = ray.origin + ray.direction * distance;
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, distance, raycastLayer)) {
-                var hitColliderPosition = hitInfo.collider.transform.position;
-                if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("ChessFigure")) {
-                    SubdivideVector(ray.origin, hitColliderPosition, ray.direction);
-                } else {
-                    SubdivideVector(ray.origin, hitColliderPosition - ray.direction, ray.direction);
+        private void RemoveAllyPositions(ChessFigure figure) {
+            foreach (var direction in figure.moveDirections) {
+                List<string> busyPositions = new List<string>();
+                foreach (var position in direction) {
+                    foreach (var otherFigure in figures) {
+                        if (otherFigure.position == position && otherFigure.type == figure.type) {
+                            busyPositions.Add(position);
+                        }
+                    }
                 }
-                SubdivideVector(ray.origin, hitColliderPosition, ray.direction);
-            } else {
-                SubdivideVector(ray.origin, rayEnd, ray.direction);
+                for (int i = 0; i < busyPositions.Count; i++) {
+                    direction.Remove(busyPositions[i]);
+                }
             }
-            return positions;
         }
 
-        private List<Vector3> SubdivideVector(Vector3 start, Vector3 end, Vector3 divider) {
-            List<Vector3> positions = new List<Vector3>();
-            Debug.DrawLine(start, end, Color.green, 3);
-            return positions;
+
+        private List<string> CalculateDirection(int startX, int startY, int offsetX, int offsetY, int distance) {
+            List<string> direction = new List<string>();
+            var positionX = startX + offsetX;
+            var positionY = startY + offsetY;
+            for (int i = 0; i < distance; i++) {
+                if (positionX >= boardPositions.GetLength(0)
+                    || positionY > boardPositions.GetLength(1)) {
+                    break;
+                }
+                direction.Add(boardPositions[positionX][positionY]);
+                positionX += offsetX;
+                positionY += offsetY;
+            }
+            return direction;
         }
     }
 

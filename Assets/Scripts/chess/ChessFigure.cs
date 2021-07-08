@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.chess {
+namespace chess {
     public class ChessFigure : MonoBehaviour {
         public Figure type;
         public FigureColor color;
-        public Vector3 position => transform.position;
+        public string position;
+        public List<List<string>> moveDirections;
     }
 }
 
