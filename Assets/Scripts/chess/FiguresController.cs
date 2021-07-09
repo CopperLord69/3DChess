@@ -4,6 +4,27 @@ using UnityEngine;
 namespace chess {
     public class FiguresController {
 
+        private struct DirectionParameters {
+            public int startX;
+            public int startY;
+            public int offsetX;
+            public int offsetY;
+            public int distance;
+
+            public DirectionParameters(int startX,
+                                       int startY,
+                                       int offsetX,
+                                       int offsetY,
+                                       int distance) {
+                this.startX = startX;
+                this.startY = startY;
+                this.offsetX = offsetX;
+                this.offsetY = offsetY;
+                this.distance = distance;
+
+            }
+        }
+
         private List<ChessFigure> figures;
 
         private string[][] boardPositions;
@@ -16,14 +37,16 @@ namespace chess {
         public void CalculateFigureMoveDirections(ChessFigure figure) {
             int x = 0;
             int y = 0;
-            while (x < boardPositions.GetLength(0)) {
-                while (y < boardPositions.GetLength(1)) {
+            figure.moveDirections.Clear();
+            while (x < boardPositions.Length - 1) {
+                x++;
+                y = 0;
+                while (y < boardPositions[x].Length) {
                     if (figure.position == boardPositions[x][y]) {
                         break;
                     }
                     y++;
                 }
-                x++;
             }
             switch (figure.type) {
                 case Figure.Pawn: {
@@ -31,60 +54,237 @@ namespace chess {
                     }
                 case Figure.Bishop: {
                         int distance = 8;
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            -1,
+                            distance)));
                         break;
                     }
                 case Figure.Rook: {
                         int distance = 8;
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            0,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            0,
+                            distance)));
                         break;
                     }
                 case Figure.Queen: {
                         int distance = 8;
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            0,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            0,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            -1,
+                            distance)));
                         break;
                     }
                 case Figure.Knight: {
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1,2 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1,-2 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 2,1 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 2,-1 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1,2 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1,-2 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -2,-1 ,1));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -2,1 ,1));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            2,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            -2,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            2,
+                            1,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            2,
+                            -1,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            2,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            -2,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -2,
+                            -1,
+                            1)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            
+                            x,
+                            y,
+                            -2,
+                            1,
+                            1)));
                         break;
                     }
                 case Figure.King: {
                         int distance = 1;
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 0, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 0, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 0, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, 1, -1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, 1, distance));
-                        figure.moveDirections.Add(CalculateDirection(x, y, -1, -1, distance));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            0,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            0,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            0,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            1,
+                            -1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            1,
+                            distance)));
+                        figure.moveDirections.Add(CalculateDirection(new DirectionParameters(
+                            x,
+                            y,
+                            -1,
+                            -1,
+                            distance)));
                         break;
                     }
                 default: {
                         break;
                     }
             }
+            TraceMoveDirections(figure);
             RemoveAllyPositions(figure);
+        }
+
+        private void TraceMoveDirections(ChessFigure figure) {
+            List<string> otherFiguresPositions = new List<string>();
+            foreach (var otherFigure in figures) {
+                otherFiguresPositions.Add(otherFigure.position);
+            }
+            foreach (var otherFigurePosition in otherFiguresPositions) {
+                foreach (var direction in figure.moveDirections) {
+                    if (direction.Contains(otherFigurePosition)) {
+                        int index = direction.IndexOf(otherFigurePosition);
+                        direction.RemoveRange(index, direction.Count - index);
+                    }
+                }
+            }
         }
 
         private void RemoveAllyPositions(ChessFigure figure) {
@@ -92,30 +292,30 @@ namespace chess {
                 List<string> busyPositions = new List<string>();
                 foreach (var position in direction) {
                     foreach (var otherFigure in figures) {
-                        if (otherFigure.position == position && otherFigure.type == figure.type) {
+                        if (otherFigure.position == position && otherFigure.color == figure.color) {
                             busyPositions.Add(position);
                         }
                     }
                 }
-                for (int i = 0; i < busyPositions.Count; i++) {
-                    direction.Remove(busyPositions[i]);
+                foreach (var pos in busyPositions) {
+                    direction.Remove(pos);
                 }
             }
         }
 
 
-        private List<string> CalculateDirection(int startX, int startY, int offsetX, int offsetY, int distance) {
+        private List<string> CalculateDirection(DirectionParameters parameters) {
             List<string> direction = new List<string>();
-            var positionX = startX + offsetX;
-            var positionY = startY + offsetY;
-            for (int i = 0; i < distance; i++) {
-                if (positionX >= boardPositions.GetLength(0)
-                    || positionY > boardPositions.GetLength(1)) {
+            var positionX = parameters.startX + parameters.offsetX;
+            var positionY = parameters.startY + parameters.offsetY;
+            for (int i = 0; i < parameters.distance; i++) {
+                if (positionX < 0 || positionX >= boardPositions.Length
+                    || positionY < 0 || positionY >= boardPositions[0].Length) {
                     break;
                 }
                 direction.Add(boardPositions[positionX][positionY]);
-                positionX += offsetX;
-                positionY += offsetY;
+                positionX += parameters.offsetX;
+                positionY += parameters.offsetY;
             }
             return direction;
         }

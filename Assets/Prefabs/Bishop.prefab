@@ -336,6 +336,7 @@ GameObject:
   - component: {fileID: 5325535308465617155}
   - component: {fileID: 2150274680709594405}
   - component: {fileID: 2114562545047865817}
+  - component: {fileID: 7481066922043085515}
   m_Layer: 3
   m_Name: Bishop
   m_TagString: Untagged
@@ -375,6 +376,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   color: 1
+  position: 
 --- !u!65 &2150274680709594405
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -404,3 +406,22 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &7481066922043085515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3959707009149924671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 924735c4e6d9a50448c650b180cfe81a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fieldMask:
+    serializedVersion: 2
+    m_Bits: 128
+  colors: 0000000001000000
+  materials:
+  - {fileID: 2100000, guid: 98bd66c4bc713dc49984be4939294b43, type: 2}
+  - {fileID: 2100000, guid: a4717fa202f2a0e46a5b5ce7bf45f0ba, type: 2}

@@ -9,7 +9,7 @@ namespace input {
 
         private void Update() {
             var mouseX = Input.GetAxis("Mouse X");
-            if (Input.GetKeyDown(KeyCode.LeftControl) && mouseX != 0) {
+            if (Input.GetKey(KeyCode.LeftControl) && mouseX != 0) {
                 RotateCamera(mouseX);
             }
         }

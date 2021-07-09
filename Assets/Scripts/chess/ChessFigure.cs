@@ -6,7 +6,8 @@ namespace chess {
         public Figure type;
         public FigureColor color;
         public string position;
-        public List<List<string>> moveDirections;
+        public List<List<string>> moveDirections = new List<List<string>>();
+        public List<string> dangerPositions = new List<string>();
     }
 }
 

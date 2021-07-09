@@ -27,7 +27,7 @@ namespace ev {
         private EventNode head;
         private EventNode tail;
 
-        public void AddListener(Token token, Action<T> receiver) {
+        public void Register(Token token, Action<T> receiver) {
             if (token == null || receiver == null) {
                 return;
             }

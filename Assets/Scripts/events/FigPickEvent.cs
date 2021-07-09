@@ -2,7 +2,7 @@ using chess;
 using UnityEngine;
 
 namespace events {
-    public struct FigurePickEvent {
+    public struct FigPickEvent {
         public ChessFigure figure;
     }
 
