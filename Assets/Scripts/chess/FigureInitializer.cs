@@ -24,13 +24,15 @@ namespace chess {
                 figureMaterials.Add(colors[i], materials[i]);
             }
             figure = GetComponent<ChessFigure>();
-            if(Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 2, fieldMask)) {
-                figure.position = hit.collider.gameObject.name;
+            if(Physics.Raycast(transform.position, Vector3.down, 2, fieldMask)) {
+                Vector3 position = transform.localPosition; 
+                figure.position = new Vector2Int((int)position.x, (int)position.z);
             }
+            SetFigureMaterials();
         }
 
-        public void SetFigureMaterials(Dictionary<FigureColor, Material> materials) {
-            var material = materials[figure.color];
+        public void SetFigureMaterials() {
+            var material = materials[(int)figure.color];
             foreach (var renderer in GetComponentsInChildren<MeshRenderer>()) {
                 renderer.material = material;
             }

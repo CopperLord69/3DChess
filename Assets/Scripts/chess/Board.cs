@@ -1,6 +1,5 @@
 ﻿using ev;
 using events;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,11 +13,12 @@ namespace chess {
         private FigurePicker picker;
 
         [SerializeField]
-        private List<FieldSet> fieldsSets;
-
-        [SerializeField]
         private List<FigureSet> figuresSets;
         private List<ChessFigure> figures = new List<ChessFigure>();
+
+        [SerializeField]
+        private List<FieldSet> fieldSets;
+
 
         [SerializeField]
         private List<FigureColor> colors;
@@ -37,21 +37,17 @@ namespace chess {
         private FiguresController figuresController;
 
         private ChessFigure selectedFigure;
+        private List<List<Vector2Int>> selectedFigureMoveDirections = new List<List<Vector2Int>>();
+        GameObject[][] boardObjects = new GameObject[8][];
 
         private void Start() {
-            int j = 0;
-            int i = 0;
-            var size = fieldsSets.Count;
-            string[][] boardPositions = new string[size][];
-            boardPositions[j] = new string[size];
-            foreach (var fieldSet in fieldsSets) {
-                boardPositions[i] = new string[size];
-                foreach (var field in fieldSet.fields) {
-                    boardPositions[i][j] = field.name;
-                    j++;
+            var size = 8;
+            boardObjects[0] = new GameObject[size];
+            for (int i = 0; i < size; i++) {
+                boardObjects[i] = new GameObject[size];
+                for (int j = 0; j < size; j++) {
+                    boardObjects[i][j] = fieldSets[i].fields[j];
                 }
-                j = 0;
-                i++;
             }
 
             foreach (var figuresSet in figuresSets) {
@@ -63,12 +59,31 @@ namespace chess {
                 figureMaterials.Add(colors[k], materials[k]);
             }
 
-            figuresController = new FiguresController(figures, boardPositions);
+            figuresController = new FiguresController(figures, boardObjects.GetLength(0));
             Token t = new Token();
+            Token t2 = new Token();
             picker.pickEvent.handler.Register(t, SelectFiugre);
+            picker.moveEvent.handler.Register(t2, MakeFigureTurn);
+        }
+
+        private void MakeFigureTurn(FigMoveEvent e) {
+            var position = new Vector2Int((int)e.position.x, (int)e.position.z);
+            selectedFigure.position = position;
+            foreach (var direction in selectedFigureMoveDirections) {
+                if (direction.Contains(position)) {
+                    MoveFigure(e);
+                    if (gameState.currentPlayer == FigureColor.Black) {
+                        gameState.currentPlayer = FigureColor.White;
+                    } else {
+                        gameState.currentPlayer = FigureColor.Black;
+                    }
+                    return;
+                }
+            }
         }
 
         private void SelectFiugre(FigPickEvent e) {
+            selectedFigureMoveDirections.Clear();
             var figure = e.figure;
             if (figure.color != gameState.currentPlayer) {
                 return;
@@ -78,55 +93,58 @@ namespace chess {
             }
             var figureObject = figure.gameObject;
             var endPosition = new Vector3(
-                figureObject.transform.position.x,
+                figureObject.transform.localPosition.x,
                 pickHeight,
-                figureObject.transform.position.z);
+                figureObject.transform.localPosition.z);
             selectedFigure = e.figure;
-            StartCoroutine(LerpObjectPosition(figureObject, endPosition));
-            figuresController.CalculateFigureMoveDirections(selectedFigure);
+            MoveFigure(endPosition);
+            selectedFigureMoveDirections =
+                figuresController.CalculateFigureMoveDirections(selectedFigure);
+
             ColorizeFields(positionMaterial);
         }
 
         private void ColorizeFields(Material mat) {
-            bool ok;
-            foreach (var direction in selectedFigure.moveDirections) {
+            foreach (var direction in selectedFigureMoveDirections) {
                 foreach (var position in direction) {
-                    ok = true;
-                    for (int i = 0; i < fieldsSets.Count && ok; i++) {
-                        for (int j = 0; j < fieldsSets[i].fields.Count && ok; j++) {
-                            if (fieldsSets[i].fields[j].name == position) {
-                                fieldsSets[i].fields[j].GetComponent<MeshRenderer>().material
-                                    = mat;
-                                ok = false;
-                                break;
-                            }
+                    var pos = new Vector3(position.x, 0, position.y);
+                    foreach (var fieldSet in fieldSets) {
+
+                        var field = fieldSet.fields.Find(field => field.transform.localPosition == pos);
+                        if (field != null) {
+                            field.GetComponent<MeshRenderer>().material = mat;
                         }
                     }
+                }
+            }
+            foreach (var direction in selectedFigureMoveDirections) {
+                foreach (var position in direction) {
+
                 }
             }
         }
 
         private void DeselectFigure(GameObject figureObject) {
             var endPosition = new Vector3(
-                figureObject.transform.position.x,
+                figureObject.transform.localPosition.x,
                 1,
-                figureObject.transform.position.z);
-            StartCoroutine(LerpObjectPosition(figureObject.gameObject, endPosition));
+                figureObject.transform.localPosition.z);
+            MoveFigure(endPosition);
         }
 
-        private IEnumerator LerpObjectPosition(GameObject objectToMove, Vector3 end) {
-            var objectPosition = objectToMove.transform.position;
-            while (objectPosition != end) {
-                objectToMove.transform.position = objectPosition;
-                objectPosition = Vector3.Lerp(objectPosition, end, lerpSpeed);
-                yield return null;
-            }
-            var collider = objectToMove.GetComponent<Collider>();
-            collider.enabled = !collider.enabled;
-        }
 
         private void MoveFigure(FigMoveEvent e) {
-            StartCoroutine(LerpObjectPosition(selectedFigure.gameObject, e.position));
+            MoveFigure(e.position);
         }
+
+        private void MoveFigure(Vector3 endPosition) {
+            if (selectedFigure.gameObject.TryGetComponent(out FigureMover mover)) {
+                mover.endPosition = endPosition;
+            } else {
+                var moverComponent = selectedFigure.gameObject.AddComponent<FigureMover>();
+                moverComponent.endPosition = endPosition ;
+            }
+        }
+
     }
 }

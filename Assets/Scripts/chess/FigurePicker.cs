@@ -1,4 +1,4 @@
-using Assets.Scripts.events.handlers;
+using events.handlers;
 using chess;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,12 +10,16 @@ public class FigurePicker : MonoBehaviour {
 
     [SerializeField]
     private LayerMask figureMask;
+    [SerializeField]
+    private LayerMask fieldMask;
 
     public FigurePickEvent pickEvent;
+    public FigureMoveEvent moveEvent;
 
     private void Awake() {
         camera = Camera.main;
         pickEvent = new FigurePickEvent();
+        moveEvent = new FigureMoveEvent();
     }
 
     void Update() {
@@ -28,6 +32,12 @@ public class FigurePicker : MonoBehaviour {
             if (Physics.Linecast(start, endPos, out RaycastHit hit,figureMask)) {
                 var figureComponent = hit.collider.GetComponent<ChessFigure>();
                 pickEvent.handler.Push(new FigPickEvent { figure = figureComponent });
+            } else {
+                if(Physics.Linecast(start, endPos, out RaycastHit hitField, fieldMask)) {
+                    Vector3 movePosition = hitField.collider.gameObject.transform.localPosition;
+                    movePosition.y = 1;
+                    moveEvent.handler.Push(new FigMoveEvent { position = movePosition });
+                }
             }
         }
     }

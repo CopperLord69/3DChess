@@ -6,7 +6,7 @@ namespace chess {
         [HideInInspector]
         public List<ChessFigure> figures = new List<ChessFigure>();
 
-        private void Start() {
+        private void Awake() {
             var objects = GetComponentsInChildren<Transform>();
             foreach(var obj in objects) {
                 if(obj.TryGetComponent(out ChessFigure figure)) {
