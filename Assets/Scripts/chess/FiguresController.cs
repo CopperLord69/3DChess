@@ -8,7 +8,8 @@ namespace chess {
 
         private Vector2Int[][] boardPositions;
 
-        private List<List<Vector2Int>> moveDirections = new List<List<Vector2Int>>();
+        List<List<Vector2Int>> moveDirections = new List<List<Vector2Int>>();
+
 
         public FiguresController(List<ChessFigure> figures, int boardSize) {
             this.figures = figures;
@@ -22,44 +23,49 @@ namespace chess {
         }
 
         public List<List<Vector2Int>> CalculateFigureMoveDirections(ChessFigure figure) {
-
+            moveDirections = new List<List<Vector2Int>>();
             int x = figure.position.x;
             int y = figure.position.y;
             switch (figure.type) {
                 case Figure.Pawn: {
+                        var enemyFigures = figures.FindAll(other => other.color != figure.color);
                         var directionParameters = new DirectionParameters();
                         directionParameters.distance = 1;
                         directionParameters.start.x = x;
                         directionParameters.start.y = y;
+                        int firstMoveLine;
                         if (figure.color == FigureColor.Black) {
-                            if (figure.position.y == 6) {
-                                directionParameters.offset.y = -1;
-                                directionParameters.distance = 1;
-                                moveDirections.Add(CalculateDirection(directionParameters));
-                            }
+                            directionParameters.offset.y = -1;
+                            firstMoveLine = 6;
                         } else {
-                            if (figure.position.y == 1) {
-                                directionParameters.offset.y = 1;
-                                directionParameters.distance = 1;
-                                moveDirections.Add(CalculateDirection(directionParameters));
+                            directionParameters.offset.y = 1;
+                            firstMoveLine = 1;
+                        }
+                        directionParameters.offset.x = 1;
+                        moveDirections.Add(CalculateDirection(directionParameters));
+                        directionParameters.offset.x = -1;
+                        moveDirections.Add(CalculateDirection(directionParameters));
+                        foreach (var direction in moveDirections) {
+                            if (!PositionsHasEnemyPosition(direction, enemyFigures)) {
+                                direction.Clear();
                             }
                         }
-                        var enemyFigures = figures.FindAll(other => other.color != figure.color);
-                        bool hasNoEnemyNear = true;
-                        for (int i = 0; hasNoEnemyNear && i < moveDirections.Count; i++) {
-                            foreach (var enemy in enemyFigures) {
-                                if (moveDirections[i].Contains(enemy.position)) {
-                                    directionParameters.offset.x = -1;
-                                    moveDirections.Add(CalculateDirection(directionParameters));
-                                    directionParameters.offset.x = 1;
-                                    moveDirections.Add(CalculateDirection(directionParameters));
-                                    hasNoEnemyNear = false;
+                        directionParameters.offset.x = 0;
+                        var positions = CalculateDirection(directionParameters);
+                        if (PositionsHasEnemyPosition(positions, enemyFigures)) {
+                            directionParameters.offset.x = 1;
+                            moveDirections.Add(CalculateDirection(directionParameters));
+                            directionParameters.offset.x = -1;
+                            moveDirections.Add(CalculateDirection(directionParameters));
+                        } else {
+                            moveDirections.Add(positions);
+                            if (figure.position.y == firstMoveLine) {
+                                directionParameters.distance = 2;
+                                var farPosition = CalculateDirection(directionParameters);
+                                if (!PositionsHasEnemyPosition(farPosition, enemyFigures)) {
+                                    moveDirections.Add(farPosition);
                                 }
                             }
-                        }
-                        if (hasNoEnemyNear) {
-                            directionParameters.distance = 2;
-                            moveDirections.Add(CalculateDirection(directionParameters));
                         }
                         break;
                     }
@@ -251,9 +257,20 @@ namespace chess {
                         break;
                     }
             }
+            figures.RemoveAll(figure => figure == null);
             TraceMoveDirections();
             RemoveAllyPositions(figure);
+            moveDirections.RemoveAll(direction => direction.Count == 0);
             return moveDirections;
+        }
+
+        private bool PositionsHasEnemyPosition(List<Vector2Int> positions, List<ChessFigure> enemies) {
+            foreach (var enemy in enemies) {
+                if (positions.Contains(enemy.position)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void TraceMoveDirections() {
@@ -265,6 +282,7 @@ namespace chess {
                 foreach (var direction in moveDirections) {
                     if (direction.Contains(otherFigurePosition)) {
                         int index = direction.IndexOf(otherFigurePosition);
+                        index += 1;
                         direction.RemoveRange(index, direction.Count - index);
                     }
                 }

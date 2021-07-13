@@ -26,7 +26,9 @@ namespace chess {
             figure = GetComponent<ChessFigure>();
             if(Physics.Raycast(transform.position, Vector3.down, 2, fieldMask)) {
                 Vector3 position = transform.localPosition; 
-                figure.position = new Vector2Int((int)position.x, (int)position.z);
+                figure.position = new Vector2Int(
+                    Mathf.RoundToInt(position.x), 
+                    Mathf.RoundToInt(position.z));
             }
             SetFigureMaterials();
         }
