@@ -1,7 +1,5 @@
 using events.handlers;
 using chess;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using events;
 

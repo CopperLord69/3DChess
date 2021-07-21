@@ -10,6 +10,9 @@ namespace chess {
 
         List<List<Vector2Int>> moveDirections = new List<List<Vector2Int>>();
 
+        public void AddFigure(ChessFigure figure) {
+            figures.Add(figure);
+        }
 
         public FiguresController(List<ChessFigure> figures, int boardSize) {
             this.figures = figures;
@@ -52,12 +55,7 @@ namespace chess {
                         }
                         directionParameters.offset.x = 0;
                         var positions = CalculateDirection(directionParameters);
-                        if (PositionsHasEnemyPosition(positions, enemyFigures)) {
-                            directionParameters.offset.x = 1;
-                            moveDirections.Add(CalculateDirection(directionParameters));
-                            directionParameters.offset.x = -1;
-                            moveDirections.Add(CalculateDirection(directionParameters));
-                        } else {
+                        if (!PositionsHasEnemyPosition(positions, enemyFigures)) {
                             moveDirections.Add(positions);
                             if (figure.position.y == firstMoveLine) {
                                 directionParameters.distance = 2;
@@ -66,7 +64,7 @@ namespace chess {
                                     moveDirections.Add(farPosition);
                                 }
                             }
-                        }
+                        } 
                         break;
                     }
                 case Figure.Bishop: {
@@ -257,10 +255,10 @@ namespace chess {
                         break;
                     }
             }
-            figures.RemoveAll(figure => figure == null);
             TraceMoveDirections();
             RemoveAllyPositions(figure);
-            moveDirections.RemoveAll(direction => direction.Count == 0);
+            figures.RemoveAll(figure => figure == null);
+            moveDirections.RemoveAll(dir => dir.Count == 0);
             return moveDirections;
         }
 
@@ -271,6 +269,22 @@ namespace chess {
                 }
             }
             return false;
+        }
+
+        private List<Vector2Int> CalculateDirection(DirectionParameters parameters) {
+            List<Vector2Int> direction = new List<Vector2Int>();
+            var positionX = parameters.start.x + parameters.offset.x;
+            var positionY = parameters.start.y + parameters.offset.y;
+            for (int i = 0; i < parameters.distance; i++) {
+                if (positionX < 0 || positionX >= boardPositions.Length
+                    || positionY < 0 || positionY >= boardPositions[0].Length) {
+                    break;
+                }
+                direction.Add(new Vector2Int(positionX, positionY));
+                positionX += parameters.offset.x;
+                positionY += parameters.offset.y;
+            }
+            return direction;
         }
 
         private void TraceMoveDirections() {
@@ -297,24 +311,6 @@ namespace chess {
                 }
             }
         }
-
-
-        private List<Vector2Int> CalculateDirection(DirectionParameters parameters) {
-            List<Vector2Int> direction = new List<Vector2Int>();
-            var positionX = parameters.start.x + parameters.offset.x;
-            var positionY = parameters.start.y + parameters.offset.y;
-            for (int i = 0; i < parameters.distance; i++) {
-                if (positionX < 0 || positionX >= boardPositions.Length
-                    || positionY < 0 || positionY >= boardPositions[0].Length) {
-                    break;
-                }
-                direction.Add(new Vector2Int(positionX, positionY));
-                positionX += parameters.offset.x;
-                positionY += parameters.offset.y;
-            }
-            return direction;
-        }
     }
-
 }
 
