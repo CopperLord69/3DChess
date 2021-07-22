@@ -89,6 +89,39 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "xyz.coderiftel.demux": {
+      "version": "https://github.com/codeRiftel/demux.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "8bd95a5d2cc1c147d43c27003a790f1afd5a0fef"
+    },
+    "xyz.coderiftel.jonson": {
+      "version": "https://github.com/codeRiftel/jonson.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "xyz.coderiftel.option": "1.0.0"
+      },
+      "hash": "a416e2699c85f85d029602af13e695592109e479"
+    },
+    "xyz.coderiftel.jonson-reflect": {
+      "version": "https://github.com/codeRiftel/jonson-reflect.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "xyz.coderiftel.option": "1.0.0",
+        "xyz.coderiftel.jonson": "1.0.0"
+      },
+      "hash": "24b38a5735eaa9f4e52fe7fd4850fa4f80348509"
+    },
+    "xyz.coderiftel.option": {
+      "version": "https://github.com/codeRiftel/option.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "a62e1dfc0b84d232930be6cf6f72890b7d5ff901"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

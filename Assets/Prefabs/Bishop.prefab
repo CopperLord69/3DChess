@@ -353,7 +353,7 @@ Transform:
   m_GameObject: {fileID: 3959707009149924671}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.9, y: 1, z: 0.9}
   m_Children:
   - {fileID: 6508199238616763222}
   - {fileID: 1229587489496699630}
@@ -405,7 +405,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   color: 1
-  position: {x: 0, y: 0}
+  movesCount: 0
+  madeTurnJustNow: 0
 --- !u!114 &7481066922043085515
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,10 +419,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 924735c4e6d9a50448c650b180cfe81a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldMask:
-    serializedVersion: 2
-    m_Bits: 128
   colors: 0000000001000000
   materials:
   - {fileID: 2100000, guid: 98bd66c4bc713dc49984be4939294b43, type: 2}
   - {fileID: 2100000, guid: a4717fa202f2a0e46a5b5ce7bf45f0ba, type: 2}
+  alreadyHasPosition: 0

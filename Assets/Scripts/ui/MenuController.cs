@@ -4,8 +4,10 @@ namespace ui.controllers {
     public class MenuController : MonoBehaviour {
 
         [SerializeField]
-        public GameObject menu;
+        private GameObject menu;
 
+        [SerializeField]
+        private FigurePicker figurePicker;
 
         private void Update() {
             if (Input.GetKeyDown(KeyCode.Escape)) {
@@ -14,13 +16,12 @@ namespace ui.controllers {
         }
 
         public void ToggleMenu() {
-
+            figurePicker.enabled = !figurePicker.enabled;
             menu.SetActive(!menu.activeSelf);
             if (menu.activeSelf) {
                 Time.timeScale = 0;
             } else {
                 Time.timeScale = 1;
-
             }
         }
 

@@ -30,7 +30,7 @@ public class FigurePicker : MonoBehaviour {
             if (Physics.Linecast(start, endPos, out RaycastHit hit, figureMask)) {
                 var figureComponent = hit.collider.GetComponent<ChessFigure>();
                 var position = hit.collider.gameObject.transform.localPosition;
-                var figPosition = new Vector2Int(
+                var figPosition = new Position(
                     Mathf.RoundToInt(position.x),
                     Mathf.RoundToInt(position.z
                     ));
@@ -38,8 +38,11 @@ public class FigurePicker : MonoBehaviour {
                 pickEvent.handler.Push(new FigPickEvent { figure = figureComponent });
             } else {
                 if (Physics.Linecast(start, endPos, out RaycastHit hitField, fieldMask)) {
-                    Vector3 movePosition = hitField.collider.gameObject.transform.localPosition;
+                    Vector3 movePosition = hitField.point;
+                    Debug.DrawRay(movePosition, Vector3.up, Color.yellow, 4);
                     movePosition.y = 1;
+                    movePosition.x = Mathf.RoundToInt(movePosition.x);
+                    movePosition.z = Mathf.RoundToInt(movePosition.z);
                     moveEvent.handler.Push(new FigMoveEvent { position = movePosition });
                 }
             }
