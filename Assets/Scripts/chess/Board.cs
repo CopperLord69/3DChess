@@ -24,14 +24,12 @@ namespace chess {
         [SerializeField]
         private FigureSet figuresSet;
         private List<ChessFigure> figures;
-        private List<ChessFigure> blackFigures;
-        private List<ChessFigure> whiteFigures;
+        private List<FigureInfo> blackFigures;
+        private List<FigureInfo> whiteFigures;
         private List<ChessFigure> kings;
         private Dictionary<Position, ChessFigure> castlingPositions;
         private Dictionary<Position, ChessFigure> approachPositions;
 
-        private List<Collider> blackColliders;
-        private List<Collider> whiteColliders;
 
         [SerializeField]
         private List<FigureColor> colors;
@@ -50,7 +48,6 @@ namespace chess {
 
         private ChessFigure selectedFigure;
         private List<List<Position>> selectedFigureMoveDirections;
-        private GameObject[][] boardObjects = new GameObject[8][];
 
         private FigureColor currentPlayer = FigureColor.White;
 
@@ -64,33 +61,28 @@ namespace chess {
         private List<Field> fields;
 
         private void Start() {
-            blackColliders = new List<Collider>();
-            whiteColliders = new List<Collider>();
             fields = new List<Field>();
             selectedFigureMoveDirections = new List<List<Position>>();
             castlingPositions = new Dictionary<Position, ChessFigure>();
             approachPositions = new Dictionary<Position, ChessFigure>();
-            blackFigures = new List<ChessFigure>();
-            whiteFigures = new List<ChessFigure>();
+            blackFigures = new List<FigureInfo>();
+            whiteFigures = new List<FigureInfo>();
             kings = new List<ChessFigure>();
             figures = new List<ChessFigure>();
             figures.AddRange(figuresSet.figures);
-            foreach (var figure in figuresSet.figures) {
+            foreach (var figure in figures) {
+                FigureInfo figureInfo = new FigureInfo() {
+                    figure = figure,
+                    figureCollider = figure.gameObject.GetComponent<Collider>()
+                };
                 if (figure.color == FigureColor.Black) {
-                    blackColliders.Add(figure.gameObject.GetComponent<Collider>());
-                    blackFigures.Add(figure);
+                    blackFigures.Add(figureInfo);
                 } else {
-                    whiteColliders.Add(figure.gameObject.GetComponent<Collider>());
-                    whiteFigures.Add(figure);
+                    whiteFigures.Add(figureInfo);
                 }
                 if (figure.type == Figure.King) {
                     kings.Add(figure);
                 }
-            }
-
-            var figureMaterials = new Dictionary<FigureColor, Material>();
-            for (int k = 0; k < colors.Count; k++) {
-                figureMaterials.Add(colors[k], materials[k]);
             }
 
             picker.pickEvent.handler.Register(figureSelectionToken, SelectFiugre);
@@ -101,16 +93,19 @@ namespace chess {
             var newFigure = Instantiate(
                 prefab,
                 selectedFigure.transform.position,
-                selectedFigure.transform.rotation);
+                selectedFigure.transform.rotation
+            );
             var figureComponent = newFigure.GetComponent<ChessFigure>();
+            FigureInfo figureInfo = new FigureInfo() {
+                figure = figureComponent,
+                figureCollider = newFigure.GetComponent<Collider>()
+            };
             if (selectedFigure.color == FigureColor.Black) {
                 figureComponent.color = FigureColor.Black;
-                blackFigures.Add(figureComponent);
-                blackColliders.Add(figureComponent.gameObject.GetComponent<Collider>());
+                blackFigures.Add(figureInfo);
             } else {
                 figureComponent.color = FigureColor.White;
-                whiteFigures.Add(figureComponent);
-                whiteColliders.Add(figureComponent.gameObject.GetComponent<Collider>());
+                whiteFigures.Add(figureInfo);
             }
             figures.Add(figureComponent);
             figureComponent.position = selectedFigure.position;
@@ -124,8 +119,6 @@ namespace chess {
 
         private void MakeFigureTurn(FigMoveEvent e) {
             figures = Chess.RemoveNullFigures(figures);
-            blackColliders.RemoveAll(collider => collider == null);
-            whiteColliders.RemoveAll(collider => collider == null);
             var figureEndPosition = new Position() {
                 x = Mathf.RoundToInt(e.position.x),
                 y = Mathf.RoundToInt(e.position.z)
@@ -145,16 +138,16 @@ namespace chess {
                         whiteCollidersEnabled = false;
                         currentPlayer = FigureColor.Black;
                     }
-                    foreach (var collider in whiteColliders) {
-                        collider.enabled = whiteCollidersEnabled;
+                    foreach (var figureInfo in whiteFigures) {
+                        figureInfo.figureCollider.enabled = whiteCollidersEnabled;
                     }
-                    foreach (var collider in blackColliders) {
-                        collider.enabled = blackCollidersEnabled;
+                    foreach (var figureInfo in blackFigures) {
+                        figureInfo.figureCollider.enabled = blackCollidersEnabled;
                     }
                     ReturnMaterials();
                     var collidingEnemy = Chess.GetCollidingEnemy(selectedFigure, figures);
                     if (collidingEnemy.IsSome()) {
-                        Destroy(collidingEnemy.Peel().gameObject);
+                        DestroyFigure(collidingEnemy.Peel());
                     }
                     if (selectedFigure.type == Figure.King) {
                         foreach (var castlingPos in castlingPositions.Keys) {
@@ -224,8 +217,18 @@ namespace chess {
 
         private void DestroyFigure(ChessFigure enemy) {
             figures.Remove(enemy);
-            blackFigures.Remove(enemy);
-            whiteFigures.Remove(enemy);
+            foreach (var figure in blackFigures) {
+                if (figure.figure == enemy) {
+                    blackFigures.Remove(figure);
+                    break;
+                }
+            }
+            foreach (var figure in whiteFigures) {
+                if (figure.figure == enemy) {
+                    whiteFigures.Remove(figure);
+                    break;
+                }
+            }
             Destroy(enemy.gameObject);
         }
 
@@ -247,11 +250,6 @@ namespace chess {
             MoveFigure(selectedFigure, endPosition);
             selectedFigureMoveDirections.Clear();
             selectedFigureMoveDirections = Chess.CalculateMoveDirections(selectedFigure, figures);
-            foreach (var selectedPosition in selectedFigureMoveDirections) {
-                foreach (var p in selectedPosition) {
-                    Debug.DrawRay(new Vector3(p.x, 0, p.y), Vector3.up, Color.green, 4);
-                }
-            }
             if (selectedFigure.type == Figure.King) {
                 castlingPositions = Chess.GetCastlingPositions(selectedFigure, figures);
                 foreach (var position in castlingPositions.Keys) {
@@ -339,7 +337,9 @@ namespace chess {
             }
             foreach (var king in kings) {
                 if (Chess.IsKingInDanger(king, figures)) {
-
+                    var position3 = new Vector3(king.position.x, 0, king.position.y);
+                    fields[0].transform.localPosition = position3;
+                    fields[0].renderer.material = dangerMaterial;
                 }
             }
         }
@@ -386,10 +386,8 @@ namespace chess {
                 DestroyFigure(figure);
             }
             figures.Clear();
-            blackColliders.Clear();
             blackFigures.Clear();
             whiteFigures.Clear();
-            whiteColliders.Clear();
             kings.Clear();
             currentPlayer = state.currentPlayer;
             foreach (var figure in state.figures) {
@@ -407,12 +405,14 @@ namespace chess {
                 if (figureObjectComponent.type == Figure.King) {
                     kings.Add(figureObjectComponent);
                 }
+                FigureInfo figureInfo = new FigureInfo() {
+                    figure = figure,
+                    figureCollider = collider
+                };
                 if (figureObjectComponent.color == FigureColor.Black) {
-                    blackColliders.Add(collider);
-                    blackFigures.Add(figureObjectComponent);
+                    blackFigures.Add(figureInfo);
                 } else {
-                    whiteColliders.Add(collider);
-                    whiteFigures.Add(figureObjectComponent);
+                    whiteFigures.Add(figureInfo);
                     figureObject.transform.Rotate(0, 180, 0);
                 }
             }

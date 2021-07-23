@@ -13,9 +13,10 @@ namespace chess {
 
 
         void FixedUpdate() {
-            if (trans.localPosition != endPosition) {
+            if (Vector3.Distance(trans.localPosition, endPosition) > 0.1f) { 
                 trans.localPosition = Vector3.Lerp(trans.localPosition, endPosition, 0.15f);
             } else {
+                trans.position = endPosition;
                 Destroy(this);
             }
         }

@@ -242,11 +242,11 @@ namespace chess {
             int y = figure.position.y;
             switch (figure.type) {
                 case Figure.Pawn: {
-                        var enemyFigures = figures.FindAll(other => other.color != figure.color);
-                        var directionParameters = new DirectionParameters();
-                        directionParameters.distance = 1;
-                        directionParameters.start.x = x;
-                        directionParameters.start.y = y;
+                        var enemyFigures = GetEnemies(figure.color, figures);
+                        var directionParameters = new DirectionParameters {
+                            distance = 1,
+                            start = new Vector2Int(x, y)
+                        };
                         int firstMoveLine;
                         if (figure.color == FigureColor.Black) {
                             directionParameters.offset.y = -1;
