@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace chess {
     public class FigureInitializer : MonoBehaviour {
 
-        private ChessFigure figure;
+        private FigureType figure;
         
         [SerializeField]
         private List<FigureColor> colors;
@@ -21,12 +21,7 @@ namespace chess {
             for (int i = 0; i < colors.Count; i++) {
                 figureMaterials.Add(colors[i], materials[i]);
             }
-            figure = GetComponent<ChessFigure>();
-            if (!alreadyHasPosition) {
-                figure.position = new Position(
-                    Mathf.RoundToInt(transform.localPosition.x),
-                    Mathf.RoundToInt(transform.localPosition.z));
-            }
+            figure = GetComponent<FigureType>();
             var material = materials[(int)figure.color];
             foreach (var renderer in GetComponentsInChildren<MeshRenderer>()) {
                 renderer.material = material;

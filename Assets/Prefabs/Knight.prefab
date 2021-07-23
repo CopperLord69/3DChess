@@ -239,13 +239,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1779646150865606784}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc009ca36cf2d25438d3918145b56e5e, type: 3}
+  m_Script: {fileID: 11500000, guid: 941b2aa4c98698540a4769f747bd6060, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   type: 2
   color: 1
-  movesCount: 0
-  madeTurnJustNow: 0
 --- !u!114 &-7587070478753711812
 MonoBehaviour:
   m_ObjectHideFlags: 0

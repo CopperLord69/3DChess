@@ -3,54 +3,264 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace chess {
-    public static class Chess {
 
-        public static Dictionary<Position, ChessFigure> GetCastlingPositions(
-            ChessFigure figure,
-            List<ChessFigure> figures
-            ) {
-            Dictionary<Position, ChessFigure> castlingPositions = CalculateCastlings(
-                figure,
-                figures
-                );
-            Dictionary<Position, ChessFigure> castlingPositionsToReturn =
-                new Dictionary<Position, ChessFigure>();
-            if (figure.movesCount == 0) {
-                foreach (var position in castlingPositions) {
-                    if (castlingPositions[position.Key].movesCount != 0) {
-                        continue;
-                    }
-                    var allies = GetAllies(figure.color, figures);
-                    int rowFigureCount = 0;
-                    foreach (var ally in allies) {
-                        if (ally.position.y == figure.position.y) {
-                            if (position.Key.x == 2) {
-                                if (ally.position.x > 0 && ally.position.x < 4) {
-                                    rowFigureCount++;
-                                    break;
-                                }
-                            } else {
-                                if (ally.position.x > 4 && ally.position.x < 7) {
-                                    rowFigureCount++;
-                                    break;
+    public class ChessFigure {
+        public Figure type;
+        public FigureColor color;
+        public Position position;
+        public int movesCount;
+        public bool madeTurnJustNow;
+    }
+
+    public class Chess {
+
+        private List<ChessFigure> figures;
+        public Chess() {
+            figures = new List<ChessFigure> {
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 0, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 1, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 2, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 3, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 4, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 5, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 6, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.White,
+                position = new Position() {x = 7, y = 1},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 7, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 6, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 5, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 4, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 3, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 2, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 1, y = 6},
+            },
+            new ChessFigure {
+                type = Figure.Pawn,
+                color = FigureColor.Black,
+                position = new Position() {x = 1, y = 5},
+            },
+            new ChessFigure {
+                type = Figure.Rook,
+                color = FigureColor.White,
+                position = new Position { x = 0, y = 0},
+            },
+            new ChessFigure {
+                type = Figure.Rook,
+                color = FigureColor.White,
+                position = new Position { x = 7, y = 0},
+            },
+            new ChessFigure {
+                type = Figure.Rook,
+                color = FigureColor.Black,
+                position = new Position { x = 2, y = 7},
+            },
+            new ChessFigure {
+                type = Figure.Rook,
+                color = FigureColor.Black,
+                position = new Position { x = 7, y = 7},
+            },
+            new ChessFigure {
+                type = Figure.Knight,
+                color = FigureColor.White,
+                position = new Position { x = 1, y = 0},
+            },
+            new ChessFigure {
+                type = Figure.Knight,
+                color = FigureColor.White,
+                position = new Position { x = 6, y = 0},
+            },
+            new ChessFigure {
+                type = Figure.Knight,
+                color = FigureColor.Black,
+                position = new Position { x = 6, y = 7},
+            },
+            new ChessFigure {
+                type = Figure.Knight,
+                color = FigureColor.Black,
+                position = new Position { x = 1, y = 7},
+            },
+            new ChessFigure {
+                type = Figure.Bishop,
+                color = FigureColor.White,
+                position = new Position {x = 2, y = 0 }
+            },
+            new ChessFigure {
+                type = Figure.Bishop,
+                color = FigureColor.White,
+                position = new Position {x = 5, y = 0 }
+            },
+            new ChessFigure {
+                type = Figure.Queen,
+                color = FigureColor.White,
+                position = new Position {x = 3, y = 0 }
+            },
+            new ChessFigure {
+                type = Figure.King,
+                color = FigureColor.White,
+                position = new Position {x = 4, y = 0 }
+            },
+            new ChessFigure {
+                type = Figure.Bishop,
+                color = FigureColor.Black,
+                position = new Position {x = 2, y = 7 }
+            },
+            new ChessFigure {
+                type = Figure.Bishop,
+                color = FigureColor.Black,
+                position = new Position {x = 5, y = 7 }
+            },
+            new ChessFigure {
+                type = Figure.Queen,
+                color = FigureColor.Black,
+                position = new Position {x = 3, y = 7 }
+            },
+            new ChessFigure {
+                type = Figure.King,
+                color = FigureColor.Black,
+                position = new Position {x = 4, y = 7 }
+            },
+        };
+        }
+
+        public Chess(List<ChessFigure> figures) {
+            this.figures = figures;
+        }
+
+        public List<ChessFigure> GetFigures() {
+            return figures;
+        }
+
+        public void DeleteFigureWithPosition(Position pos) {
+            foreach (var figure in figures) {
+                if (Position.AreSame(pos, figure.position)) {
+                    figures.Remove(figure);
+                    break;
+                }
+            }
+        }
+
+        public void SetFigurePosition(Position figurePosition, Position newPosition) {
+            var figureOption = GetFigureOnPosition(figurePosition);
+            foreach (var figure in figures) {
+                figure.madeTurnJustNow = false;
+            }
+            if (figureOption.IsSome()) {
+                figureOption.Peel().movesCount += 1;
+                figureOption.Peel().madeTurnJustNow = true;
+                figureOption.Peel().position = newPosition;
+            }
+        }
+
+        public void TransformFigure(Position figurePosition, Figure type) {
+            var figureOption = GetFigureOnPosition(figurePosition);
+            if (figureOption.IsSome()) {
+                figureOption.Peel().type = type;
+            }
+        }
+
+        public Dictionary<Position, Position> GetCastlingPositions(Position position) {
+            var kingOp = GetFigureOnPosition(position);
+            Dictionary<Position, Position> castlingPositionsToReturn =
+                new Dictionary<Position, Position>();
+            if (kingOp.IsSome()) {
+                var king = kingOp.Peel();
+                Dictionary<Position, Position> castlingPositions = CalculateCastlings(king);
+                if (king.movesCount == 0) {
+                    foreach (var pos in castlingPositions) {
+                        var figure = GetFigureOnPosition(castlingPositions[pos.Key]);
+                        if (figure.IsSome()) {
+                            if (figure.Peel().movesCount != 0) {
+                                continue;
+                            }
+                        }
+                        var allies = GetFiguresWithSameColor(king.color);
+                        int rowFigureCount = 0;
+                        foreach (var ally in allies) {
+                            if (ally.position.y == king.position.y) {
+                                if (pos.Key.x == 2) {
+                                    if (ally.position.x > 0 && ally.position.x < 4) {
+                                        rowFigureCount++;
+                                        break;
+                                    }
+                                } else {
+                                    if (ally.position.x > 4 && ally.position.x < 7) {
+                                        rowFigureCount++;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (rowFigureCount == 0 && position.Key.y == figure.position.y) {
-                        castlingPositionsToReturn.Add(position.Key, position.Value);
+                        if (rowFigureCount == 0 && pos.Key.y == king.position.y) {
+                            castlingPositionsToReturn.Add(pos.Key, pos.Value);
+                        }
                     }
                 }
             }
+
             return castlingPositionsToReturn;
         }
 
-        private static Dictionary<Position, ChessFigure> CalculateCastlings(
-            ChessFigure figure,
-            List<ChessFigure> figures
-            ) {
-            Dictionary<Position, ChessFigure> castlingPositions =
-                new Dictionary<Position, ChessFigure>();
+        private Dictionary<Position, Position> CalculateCastlings(ChessFigure figure) {
+            Dictionary<Position, Position> castlingPositions =
+                new Dictionary<Position, Position>();
             Position leftRookPosition;
             Position rightRookPosition;
             Position leftKingPosition;
@@ -65,45 +275,46 @@ namespace chess {
             leftKingPosition = new Position(2, y);
             rightRookPosition = new Position(7, y);
             rightKingPosition = new Position(6, y);
+            castlingPositions.Add(leftKingPosition, leftRookPosition);
+            castlingPositions.Add(rightKingPosition, rightRookPosition);
             foreach (var fig in figures) {
                 if (Position.AreSame(fig.position, leftRookPosition)) {
-                    castlingPositions.Add(leftKingPosition, fig);
                 }
                 if (Position.AreSame(fig.position, rightRookPosition)) {
-                    castlingPositions.Add(rightKingPosition, fig);
                 }
             }
             return castlingPositions;
         }
 
-        public static Dictionary<Position, ChessFigure> GetPawnElPassants(
-            ChessFigure figure,
-            List<ChessFigure> figures
-        ) {
-            Dictionary<Position, ChessFigure> approachPositions = new Dictionary<Position, ChessFigure>(); ;
-            var enemies = GetEnemies(figure.color, figures);
-            int enemyFirstMoveLine;
-            int xOffset;
-            if (figure.color == FigureColor.White) {
-                enemyFirstMoveLine = 4;
-                xOffset = 1;
-            } else {
-                enemyFirstMoveLine = 3;
-                xOffset = -1;
-            }
-            foreach (var enemy in enemies) {
-                if (
-                    enemy.position.y == enemyFirstMoveLine
-                    && enemy.position.y == figure.position.y
-                    ) {
-                    if (Mathf.Abs(enemy.position.x - figure.position.x) < 2) {
-                        bool isPawnWithOneDouble = (enemy.type == Figure.Pawn);
-                        isPawnWithOneDouble &= enemy.movesCount == 1;
-                        isPawnWithOneDouble &= enemy.madeTurnJustNow;
-                        if (isPawnWithOneDouble) {
-                            var pos = enemy.position;
-                            pos.y += xOffset;
-                            approachPositions.Add(pos, enemy);
+        public Dictionary<Position, Position> GetPawnElPassants(Position pawnPosition) {
+            Dictionary<Position, Position> approachPositions = new Dictionary<Position, Position>();
+            var pawnOp = GetFigureOnPosition(pawnPosition);
+            if (pawnOp.IsSome()) {
+                var pawn = pawnOp.Peel();
+                var enemies = GetFiguresWithOppositeColor(pawn.color);
+                int enemyFirstMoveLine;
+                int xOffset;
+                if (pawn.color == FigureColor.White) {
+                    enemyFirstMoveLine = 4;
+                    xOffset = 1;
+                } else {
+                    enemyFirstMoveLine = 3;
+                    xOffset = -1;
+                }
+                foreach (var enemy in enemies) {
+                    if (
+                        enemy.position.y == enemyFirstMoveLine
+                        && enemy.position.y == pawn.position.y
+                        ) {
+                        if (Mathf.Abs(enemy.position.x - pawn.position.x) < 2) {
+                            bool isPawnWithOneDouble = (enemy.type == Figure.Pawn);
+                            isPawnWithOneDouble &= enemy.movesCount == 1;
+                            isPawnWithOneDouble &= enemy.madeTurnJustNow;
+                            if (isPawnWithOneDouble) {
+                                var pos = enemy.position;
+                                pos.y += xOffset;
+                                approachPositions.Add(pos, enemy.position);
+                            }
                         }
                     }
                 }
@@ -111,10 +322,10 @@ namespace chess {
             return approachPositions;
         }
 
-        public static bool NoAvailableMoves(FigureColor color, List<ChessFigure> figures) {
-            var allies = GetAllies(color, figures);
+        public bool NoAvailableMovesForFiguresOfColor(FigureColor color) {
+            var allies = GetFiguresWithSameColor(color);
             foreach (var ally in allies) {
-                var allyMoveDeirections = CalculateMoveDirections(ally, figures);
+                var allyMoveDeirections = CalculateMovePositions(ally.position);
                 if (allyMoveDeirections.Count != 0) {
                     return false;
                 }
@@ -122,10 +333,10 @@ namespace chess {
             return true;
         }
 
-        public static bool IsKingInDanger(ChessFigure king, List<ChessFigure> figures) {
-            List<ChessFigure> enemies = GetEnemies(king.color, figures);
+        private bool IsKingInDanger(ChessFigure king) {
+            List<ChessFigure> enemies = GetFiguresWithOppositeColor(king.color);
             foreach (var enemy in enemies) {
-                var enemyMoveDirecitons = CalculateFigureMoveDirections(enemy, figures);
+                var enemyMoveDirecitons = CalculateFigureMoveDirections(enemy);
                 foreach (var enemyDirection in enemyMoveDirecitons) {
                     if (enemyDirection.Contains(king.position)) {
                         return true;
@@ -135,21 +346,21 @@ namespace chess {
             return false;
         }
 
-        public static bool CheckForCheck(List<ChessFigure> figures) {
-            var kings = GetKings(figures);
+        public bool CheckForCheck() {
+            var kings = GetKingsFromFigures();
             foreach (var king in kings) {
-                if (IsKingInDanger(king, figures)) {
+                if (IsKingInDanger(king)) {
                     return true;
                 }
             }
             return false;
         }
 
-        public static bool CheckForMate(List<ChessFigure> figures) {
-            var kings = GetKings(figures);
+        public bool CheckForMate() {
+            var kings = GetKingsFromFigures();
             foreach (var king in kings) {
-                if (IsKingInDanger(king, figures)) {
-                    if (NoAvailableMoves(king.color, figures)) {
+                if (IsKingInDanger(king)) {
+                    if (NoAvailableMovesForFiguresOfColor(king.color)) {
                         return true;
                     }
                 }
@@ -157,7 +368,17 @@ namespace chess {
             return false;
         }
 
-        public static List<ChessFigure> GetEnemies(FigureColor color, List<ChessFigure> figures) {
+        public bool CheckForStalemate() {
+            var kings = GetKingsFromFigures();
+            foreach (var king in kings) {
+                if (NoAvailableMovesForFiguresOfColor(king.color)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private List<ChessFigure> GetFiguresWithOppositeColor(FigureColor color) {
             List<ChessFigure> enemies = new List<ChessFigure>();
             foreach (var figure in figures) {
                 if (figure.color != color) {
@@ -167,7 +388,7 @@ namespace chess {
             return enemies;
         }
 
-        public static List<ChessFigure> GetAllies(FigureColor color, List<ChessFigure> figures) {
+        private List<ChessFigure> GetFiguresWithSameColor(FigureColor color) {
             List<ChessFigure> allies = new List<ChessFigure>();
             foreach (var figure in figures) {
                 if (figure.color == color) {
@@ -177,7 +398,7 @@ namespace chess {
             return allies;
         }
 
-        public static List<ChessFigure> GetKings(List<ChessFigure> figures) {
+        public List<ChessFigure> GetKingsFromFigures() {
             var kings = new List<ChessFigure>();
             foreach (var figure in figures) {
                 if (figure.type == Figure.King) {
@@ -187,7 +408,7 @@ namespace chess {
             return kings;
         }
 
-        public static Option<ChessFigure> FindKingWithColor(FigureColor color, List<ChessFigure> figures) {
+        public Option<ChessFigure> FindKingWithColor(FigureColor color) {
             foreach (var figure in figures) {
                 if (figure.type == Figure.King && figure.color == color) {
                     return Option<ChessFigure>.Some(figure);
@@ -196,53 +417,55 @@ namespace chess {
             return Option<ChessFigure>.None();
         }
 
-        public static List<List<Position>> CalculateMoveDirections(
-            ChessFigure figure,
-            List<ChessFigure> figures
-        ) {
-            var allyKing = FindKingWithColor(figure.color, figures);
-            var enemies = GetEnemies(figure.color, figures);
-            var impossiblePositions = new List<Position>();
-            Position initialPosition = figure.position;
-            var figureMoveDirections = CalculateFigureMoveDirections(figure, figures);
-            foreach (var direction in figureMoveDirections) {
-                foreach (var position in direction) {
-                    if (allyKing.IsSome()) {
-                        List<ChessFigure> tempEnemies = new List<ChessFigure>();
-                        foreach(var enemy in enemies) {
-                            if(Position.AreSame(position, enemy.position)) {
-                                figures.Remove(enemy);
-                                tempEnemies.Add(enemy);
+        public List<Position> CalculateMovePositions(Position figurePosition) {
+            var figureOp = GetFigureOnPosition(figurePosition);
+            var figureMovePositions = new List<Position>();
+            if (figureOp.IsSome()) {
+                var figure = figureOp.Peel();
+                var allyKing = FindKingWithColor(figure.color);
+                var enemies = GetFiguresWithOppositeColor(figure.color);
+                var impossiblePositions = new List<Position>();
+                Position initialPosition = figure.position;
+                var figureMoveDirections = CalculateFigureMoveDirections(figure);
+                foreach (var direction in figureMoveDirections) {
+                    foreach (var position in direction) {
+                        if (allyKing.IsSome()) {
+                            List<ChessFigure> tempEnemies = new List<ChessFigure>();
+                            foreach (var enemy in enemies) {
+                                if (Position.AreSame(position, enemy.position)) {
+                                    figures.Remove(enemy);
+                                    tempEnemies.Add(enemy);
+                                }
+                            }
+                            figure.position = position;
+                            if (IsKingInDanger(allyKing.Peel())) {
+                                impossiblePositions.Add(position);
+                            }
+                            foreach (var enemy in tempEnemies) {
+                                figures.Add(enemy);
                             }
                         }
-                        figure.position = position;
-                        if (IsKingInDanger(allyKing.Peel(), figures)) {
-                            impossiblePositions.Add(position);
-                        }
-                        foreach(var enemy in tempEnemies) {
-                            figures.Add(enemy);
-                        }
+                    }
+                    foreach (var position in impossiblePositions) {
+                        direction.Remove(position);
                     }
                 }
-                foreach (var position in impossiblePositions) {
-                    direction.Remove(position);
+                figure.position = initialPosition;
+                figureMoveDirections = RemoveEmptyDirections(figureMoveDirections);
+                foreach (var figureDirection in figureMoveDirections) {
+                    figureMovePositions.AddRange(figureDirection);
                 }
             }
-            figure.position = initialPosition;
-            figureMoveDirections = RemoveEmptyDirections(figureMoveDirections);
-            return figureMoveDirections;
+            return figureMovePositions;
         }
 
-        private static List<List<Position>> CalculateFigureMoveDirections(
-            ChessFigure figure,
-            List<ChessFigure> figures
-        ) {
+        private List<List<Position>> CalculateFigureMoveDirections(ChessFigure figure) {
             var moveDirections = new List<List<Position>>();
             int x = figure.position.x;
             int y = figure.position.y;
             switch (figure.type) {
                 case Figure.Pawn: {
-                        var enemyFigures = GetEnemies(figure.color, figures);
+                        var enemyFigures = GetFiguresWithOppositeColor(figure.color);
                         var directionParameters = new DirectionParameters {
                             distance = 1,
                             start = new Vector2Int(x, y)
@@ -260,21 +483,24 @@ namespace chess {
                         directionParameters.offset.x = -1;
                         moveDirections.Add(CalculateDirection(directionParameters));
                         foreach (var direction in moveDirections) {
-                            if (!PositionsHasEnemyPosition(direction, enemyFigures)) {
+                            if (!HasEnemyOnDirection(direction, enemyFigures)) {
                                 direction.Clear();
                             }
                         }
                         directionParameters.offset.x = 0;
                         var positions = CalculateDirection(directionParameters);
-                        if (!PositionsHasEnemyPosition(positions, enemyFigures)) {
+                        if (!HasEnemyOnDirection(positions, enemyFigures)) {
                             moveDirections.Add(positions);
                             if (figure.position.y == firstMoveLine) {
                                 directionParameters.distance = 2;
                                 var farPosition = CalculateDirection(directionParameters);
-                                if (!PositionsHasEnemyPosition(farPosition, enemyFigures)) {
+                                if (!HasEnemyOnDirection(farPosition, enemyFigures)) {
                                     moveDirections.Add(farPosition);
                                 }
                             }
+                        }
+                        foreach (var key in GetPawnElPassants(figure.position).Keys) {
+                            moveDirections.Add(new List<Position> { key });
                         }
                         break;
                     }
@@ -466,8 +692,8 @@ namespace chess {
                         break;
                     }
             }
-            moveDirections = TraceMoveDirections(moveDirections, figures);
-            moveDirections = RemoveAllyPositions(figure, moveDirections, figures);
+            moveDirections = TraceMoveDirections(moveDirections);
+            moveDirections = RemoveAllyPositions(figure, moveDirections);
             List<List<Position>> directionsToRemove = new List<List<Position>>();
             foreach (var direction in moveDirections) {
                 if (direction.Count == 0) {
@@ -480,7 +706,7 @@ namespace chess {
             return moveDirections;
         }
 
-        private static List<Position> CalculateDirection(DirectionParameters parameters) {
+        private List<Position> CalculateDirection(DirectionParameters parameters) {
             List<Position> direction = new List<Position>();
             var positionX = parameters.start.x + parameters.offset.x;
             var positionY = parameters.start.y + parameters.offset.y;
@@ -496,35 +722,19 @@ namespace chess {
             return direction;
         }
 
-        private static bool PositionsHasEnemyPosition(
-            List<Position> positions,
+        private bool HasEnemyOnDirection(
+            List<Position> direction,
             List<ChessFigure> enemies
         ) {
             foreach (var enemy in enemies) {
-                if (positions.Contains(enemy.position)) {
+                if (direction.Contains(enemy.position)) {
                     return true;
                 }
             }
             return false;
         }
 
-        public static Option<ChessFigure> GetCollidingEnemy(
-            ChessFigure figure,
-            List<ChessFigure> figures
-        ) {
-            var enemies = GetEnemies(figure.color, figures);
-            foreach (var enemy in enemies) {
-                if (Position.AreSame(enemy.position, figure.position)) {
-                    return Option<ChessFigure>.Some(enemy);
-                }
-            }
-            return Option<ChessFigure>.None();
-        }
-
-        private static List<List<Position>> TraceMoveDirections(
-            List<List<Position>> moveDirections,
-            List<ChessFigure> figures
-        ) {
+        private List<List<Position>> TraceMoveDirections(List<List<Position>> moveDirections) {
             List<Position> otherFiguresPositions = new List<Position>();
             foreach (var otherFigure in figures) {
                 otherFiguresPositions.Add(otherFigure.position);
@@ -541,17 +751,11 @@ namespace chess {
             return moveDirections;
         }
 
-        private static List<List<Position>> RemoveAllyPositions(
+        private List<List<Position>> RemoveAllyPositions(
             ChessFigure figure,
-            List<List<Position>> moveDirections,
-            List<ChessFigure> figures
+            List<List<Position>> moveDirections
         ) {
-            List<ChessFigure> allyFigures = new List<ChessFigure>();
-            foreach (var fig in figures) {
-                if (fig.color == figure.color && fig != figure) {
-                    allyFigures.Add(fig);
-                }
-            }
+            var allyFigures = GetFiguresWithSameColor(figure.color);
             foreach (var direciton in moveDirections) {
                 foreach (var ally in allyFigures) {
                     direciton.Remove(ally.position);
@@ -560,7 +764,7 @@ namespace chess {
             return moveDirections;
         }
 
-        private static List<List<Position>> RemoveEmptyDirections(List<List<Position>> list) {
+        private List<List<Position>> RemoveEmptyDirections(List<List<Position>> list) {
             List<List<Position>> emptyDirections = new List<List<Position>>();
             foreach (var direction in list) {
                 if (direction.Count == 0) {
@@ -573,17 +777,33 @@ namespace chess {
             return list;
         }
 
-        public static List<ChessFigure> RemoveNullFigures(List<ChessFigure> figures) {
-            List<ChessFigure> nullFigures = new List<ChessFigure>();
+        public Option<ChessFigure> GetFigureOnPosition(Position position) {
             foreach (var figure in figures) {
-                if (figure == null) {
-                    nullFigures.Add(figure);
+                if (Position.AreSame(figure.position, position)) {
+                    return Option<ChessFigure>.Some(figure);
                 }
             }
-            foreach (var nullFigure in nullFigures) {
-                figures.Remove(nullFigure);
+            return Option<ChessFigure>.None();
+        }
+
+        public Option<Position> GetKingInDangerPosition() {
+            var kings = GetKingsFromFigures();
+            foreach (var king in kings) {
+                if (IsKingInDanger(king)) {
+                    return Option<Position>.Some(king.position);
+                }
             }
-            return figures;
+            return Option<Position>.None();
+        }
+
+        public List<Position> GetDangerPositions(List<Position> figureMovePositions) {
+            List<Position> dangerPositions = new List<Position>();
+            foreach (var figure in figures) {
+                if (figureMovePositions.Contains(figure.position)) {
+                    dangerPositions.Add(figure.position);
+                }
+            }
+            return dangerPositions;
         }
     }
 }

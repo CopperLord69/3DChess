@@ -17,7 +17,7 @@ namespace chess {
                 trans.localPosition = Vector3.Lerp(trans.localPosition, endPosition, 0.15f);
             } else {
                 trans.position = endPosition;
-                Destroy(this);
+                this.enabled = false;
             }
         }
     }
