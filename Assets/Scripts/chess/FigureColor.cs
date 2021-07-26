@@ -1,4 +1,4 @@
-﻿namespace chess {
+﻿namespace chessEngn {
     public enum FigureColor {
         Black,
         White,

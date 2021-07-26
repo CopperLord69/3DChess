@@ -2,8 +2,8 @@
 using chess;
 using System.Collections.Generic;
 
-namespace chess {
-    public class GameState : MonoBehaviour{
+namespace chessEngn {
+    public class GameState {
         public FigureColor currentPlayer;
         public List<ChessFigure> figures;
 

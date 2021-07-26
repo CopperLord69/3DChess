@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using chess;
 using System.Collections.Generic;
+using chessEngn;
 
 namespace chess {
     public class FigureInitializer : MonoBehaviour {

@@ -8,6 +8,7 @@ using ev;
 using jonson.reflect;
 using jonson;
 using UnityEngine.SceneManagement;
+using chessEngn;
 
 namespace chess {
     public class Board : MonoBehaviour {
@@ -89,7 +90,7 @@ namespace chess {
             var figureType = prefab.GetComponent<FigureType>();
             selectedPiece.type = figureType.type;
             Destroy(selectedPiece.piece.gameObject);
-            var parent = selectedPiece.piece.transform.parent;
+            var parent = figureSet.transform;
             newPiece.transform.parent = parent;
             var piecePosition = selectedPiece.piece.transform.localPosition;
             selectedPiece.piece = newPiece;
@@ -100,13 +101,7 @@ namespace chess {
                 x = Mathf.RoundToInt(piecePosition.x),
                 y = Mathf.RoundToInt(piecePosition.z),
             };
-
-            Position newPosition = new Position() {
-                x = Mathf.RoundToInt(newPiece.transform.localPosition.x),
-                y = Mathf.RoundToInt(newPiece.transform.localRotation.z),
-            };
             chess.TransformFigure(figurePosition, figureType.type);
-            chess.SetFigurePosition(figurePosition, newPosition);
             pieceInfos.Add(selectedPiece);
             CheckForCheck();
             ReturnMaterials();
@@ -119,7 +114,13 @@ namespace chess {
                 y = Mathf.RoundToInt(pickedFigurePosition.z),
             };
             var sel = chess.GetFigureOnPosition(figurePosition);
-            if (sel.IsSome()) {
+            FigureColor currentColor;
+            if (isWhiteTurn) {
+                currentColor = FigureColor.White;
+            } else {
+                currentColor = FigureColor.Black;
+            }
+            if (sel.IsSome() && sel.Peel().color == currentColor) {
                 foreach (var pInfo in pieceInfos) {
                     var distance =
                         Vector3.Distance(pInfo.piece.transform.localPosition, pickedFigurePosition);
@@ -128,16 +129,16 @@ namespace chess {
                             DeselectFigure(selectedPiece.piece);
                         }
                         selectedPiece = pInfo;
-                        
+
                         var positions = chess.CalculateMovePositions(figurePosition);
                         selectedFigureMovePositions.Clear();
                         foreach (var pos in positions) {
                             selectedFigureMovePositions.Add(new Vector3(pos.x, 1, pos.y));
                         }
                         if (pInfo.type == Figure.Pawn) {
-                            passantPositions = chess.GetPawnElPassants(figurePosition);
+                            passantPositions = chess.GetPawnEnPassants(figurePosition);
                         }
-                        if(pInfo.type == Figure.King) {
+                        if (pInfo.type == Figure.King) {
                             castlingPositions = chess.GetCastlingPositions(figurePosition);
                         }
                         Vector3 moveUpPosition = new Vector3(
@@ -148,9 +149,9 @@ namespace chess {
                         break;
                     }
                 }
+                ColorizeMoveFields();
+                ColorizeDangerFields();
             }
-            ColorizeMoveFields();
-            ColorizeDangerFields();
         }
 
         private void MakeFigureTurn(FigMoveEvent e) {
@@ -179,7 +180,7 @@ namespace chess {
                         };
                         foreach (var pInfo in pieceInfos) {
                             distance = Vector3.Distance(
-                                pInfo.piece.transform.localPosition, 
+                                pInfo.piece.transform.localPosition,
                                 collidingPosition3
                             );
                             if (distance < 0.2f) {
@@ -190,10 +191,36 @@ namespace chess {
                             }
                         }
                     }
-                    if(selectedPiece.type == Figure.Pawn) {
+                    if (selectedPiece.type == Figure.Pawn) {
                         if (figureEndPosition.y > 6 ||
-                            figureEndPosition.y < 1) { 
+                            figureEndPosition.y < 1) {
                             onPawnTransformation?.Invoke();
+                        }
+                    }
+                    if (selectedPiece.type == Figure.King) {
+                        foreach (var castlingPos in castlingPositions) {
+                            if (Position.AreSame(castlingPos.Key, figureEndPosition)) {
+                                Vector3 rookPos = new Vector3(
+                                    castlingPos.Value.x,
+                                    1,
+                                    castlingPos.Value.y
+                                );
+                                foreach (var ally in pieceInfos) {
+                                    var dist = Vector3.Distance(
+                                        rookPos,
+                                        ally.piece.transform.localPosition
+                                   );
+                                    if (dist < 0.2f) {
+                                        Vector3 rookEndPos;
+                                        if (rookPos.x == 0) {
+                                            rookEndPos = new Vector3(rookPos.x + 3, 1, rookPos.z);
+                                        } else {
+                                            rookEndPos = new Vector3(rookPos.x - 2, 1, rookPos.z);
+                                        }
+                                        MoveFigure(ally.piece, rookEndPos);
+                                    }
+                                }
+                            }
                         }
                     }
                     chess.SetFigurePosition(figureStartPosition, figureEndPosition);
@@ -203,12 +230,12 @@ namespace chess {
                             y = 1,
                             z = passantPos.y
                         };
-                        foreach(var pieceInfo in pieceInfos) {
+                        foreach (var pieceInfo in pieceInfos) {
                             var dist = Vector3.Distance(
-                                pieceInfo.piece.transform.localPosition, 
+                                pieceInfo.piece.transform.localPosition,
                                 position3
                             );
-                            if(dist < 0.2f) {
+                            if (dist < 0.2f) {
                                 Destroy(pieceInfo.piece);
                                 pieceInfos.Remove(pieceInfo);
                                 chess.DeleteFigureWithPosition(passantPos);
@@ -219,6 +246,11 @@ namespace chess {
                     CheckForCheck();
                     MoveFigure(selectedPiece.piece, e.position);
                     isWhiteTurn = !isWhiteTurn;
+                    if (isWhiteTurn) {
+                        currentPlayer = FigureColor.White;
+                    } else {
+                        currentPlayer = FigureColor.Black;
+                    }
                     foreach (var pInfo in pieceInfos) {
                         bool figureIsWhite = pInfo.color == FigureColor.White;
                         if (figureIsWhite == isWhiteTurn) {
@@ -227,6 +259,7 @@ namespace chess {
                             pInfo.figureCollider.enabled = false;
                         }
                     }
+                    selectedFigureMovePositions.Clear();
                     return;
                 }
             }
@@ -313,6 +346,7 @@ namespace chess {
                 1,
                 figureObject.transform.localPosition.z);
             MoveFigure(selectedPiece.piece, endPosition);
+            selectedFigureMovePositions.Clear();
             ReturnMaterials();
         }
 
@@ -327,26 +361,11 @@ namespace chess {
             }
         }
 
-
-
-        private List<PieceInfo> RemoveNullPieces(List<PieceInfo> figures) {
-            List<PieceInfo> nullFigures = new List<PieceInfo>();
-            foreach (var figure in figures) {
-                if (figure.piece == null) {
-                    nullFigures.Add(figure);
-                }
-            }
-            foreach (var nullFigure in nullFigures) {
-                figures.Remove(nullFigure);
-            }
-            return figures;
-        }
-
-        public void SaveBoard(GameObject stateObject) {
-            pieceInfos = RemoveNullPieces(pieceInfos);
-            var state = stateObject.GetComponent<GameState>();
-            state.figures = chess.GetFigures();
-            state.currentPlayer = currentPlayer;
+        public void SaveBoard() {
+            var state = new GameState {
+                figures = chess.GetFigures(),
+                currentPlayer = currentPlayer
+            };
             var result = Reflect.ToJSON(state, true);
             string resultStr = Jonson.Generate(result);
             var path = Application.persistentDataPath + "/save.txt";
@@ -362,7 +381,9 @@ namespace chess {
         public void LoadBoard() {
             if (selectedPiece.piece != null) {
                 DeselectFigure(selectedPiece.piece);
+                selectedPiece.piece = null;
             }
+
             string path = Application.persistentDataPath + "/save.txt";
             if (!File.Exists(path)) {
                 return;
@@ -376,13 +397,25 @@ namespace chess {
                 return;
             }
             state = Reflect.FromJSON(state, stateRes.AsOk());
-            pieceInfos.Clear();
-            currentPlayer = state.currentPlayer;
             chess = new Chess(state.figures);
-            foreach (var figure in state.figures) {
-                var figureObject = Instantiate(prefabs[(int)figure.type]);
-                figureObject.transform.localPosition =
-                    new Vector3(figure.position.x, 1, figure.position.y);
+            currentPlayer = state.currentPlayer;
+            foreach (var piece in pieceInfos) {
+                Destroy(piece.piece);
+            }
+            pieceInfos.Clear();
+            foreach (var figure in chess.GetFigures()) {
+                var piece = Instantiate(prefabs[(int)figure.type], figureSet.transform);
+                var pieceInfo = piece.GetComponent<FigureType>();
+                pieceInfo.color = figure.color;
+                pieceInfo.type = figure.type;
+                var position = new Vector3(figure.position.x, 1, figure.position.y);
+                piece.transform.localPosition = position;
+                pieceInfos.Add(new PieceInfo {
+                    color = figure.color,
+                    type = figure.type,
+                    piece = piece,
+                    figureCollider = piece.GetComponent<Collider>()
+                });
             }
             CheckForCheck();
         }

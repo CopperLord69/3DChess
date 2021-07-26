@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using chessEngn;
 
 namespace chess {
     public struct PieceInfo {

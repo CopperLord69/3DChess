@@ -1,4 +1,4 @@
-﻿namespace chess {
+﻿namespace chessEngn {
     public enum Figure {
         Pawn,
         Rook,

@@ -1,7 +1,6 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace chess {
+namespace chessEngn {
     public struct DirectionParameters {
         public Vector2Int start;
         public Vector2Int offset;

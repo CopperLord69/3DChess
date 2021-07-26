@@ -1,4 +1,4 @@
-﻿namespace chess {
+﻿namespace chessEngn {
     public struct Position {
         public int x;
         public int y;
