@@ -1,11 +1,8 @@
 ﻿using UnityEngine;
-using chessEngn;
 
 namespace chess {
     public struct PieceInfo {
-        public GameObject piece;
+        public GameObject gameObject;
         public Collider figureCollider;
-        public FigureColor color;
-        public Figure type;
     }
 }
