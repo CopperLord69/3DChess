@@ -724,8 +724,25 @@ namespace chessEngn {
                         break;
                     }
             }
-            moveDirections = TraceMoveDirections(moveDirections);
-            moveDirections = RemoveAllyPositions(figure, moveDirections);
+            List<Position> otherFiguresPositions = new List<Position>();
+            foreach (var otherFigure in figures) {
+                otherFiguresPositions.Add(otherFigure.position);
+            }
+            foreach (var otherFigurePosition in otherFiguresPositions) {
+                foreach (var direction in moveDirections) {
+                    if (direction.Contains(otherFigurePosition)) {
+                        int index = direction.IndexOf(otherFigurePosition);
+                        index += 1;
+                        direction.RemoveRange(index, direction.Count - index);
+                    }
+                }
+            }
+            var allyFigures = GetFiguresWithSameColor(figure.color);
+            foreach (var direciton in moveDirections) {
+                foreach (var ally in allyFigures) {
+                    direciton.Remove(ally.position);
+                }
+            }
             List<List<Position>> directionsToRemove = new List<List<Position>>();
             foreach (var direction in moveDirections) {
                 if (direction.Count == 0) {
@@ -764,36 +781,6 @@ namespace chessEngn {
                 }
             }
             return false;
-        }
-
-        private List<List<Position>> TraceMoveDirections(List<List<Position>> moveDirections) {
-            List<Position> otherFiguresPositions = new List<Position>();
-            foreach (var otherFigure in figures) {
-                otherFiguresPositions.Add(otherFigure.position);
-            }
-            foreach (var otherFigurePosition in otherFiguresPositions) {
-                foreach (var direction in moveDirections) {
-                    if (direction.Contains(otherFigurePosition)) {
-                        int index = direction.IndexOf(otherFigurePosition);
-                        index += 1;
-                        direction.RemoveRange(index, direction.Count - index);
-                    }
-                }
-            }
-            return moveDirections;
-        }
-
-        private List<List<Position>> RemoveAllyPositions(
-            ChessFigure figure,
-            List<List<Position>> moveDirections
-        ) {
-            var allyFigures = GetFiguresWithSameColor(figure.color);
-            foreach (var direciton in moveDirections) {
-                foreach (var ally in allyFigures) {
-                    direciton.Remove(ally.position);
-                }
-            }
-            return moveDirections;
         }
 
         public Option<ChessFigure> GetFigureOnPosition(Position position) {
