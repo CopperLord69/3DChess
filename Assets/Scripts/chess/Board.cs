@@ -8,6 +8,7 @@ using jonson.reflect;
 using jonson;
 using UnityEngine.SceneManagement;
 using chessEngine;
+using option;
 
 namespace chess {
     public class Board : MonoBehaviour {
@@ -35,15 +36,10 @@ namespace chess {
         private Material whiteMaterial;
 
         [SerializeField]
-        private float pickHeight;
-
-        [SerializeField]
         private List<GameObject> prefabs;
 
         private PieceInfo selectedPiece;
         private List<Vector3> selectedFigureMovePositions;
-        private Dictionary<Position, Position> passantPositions;
-        private Dictionary<Position, Position> castlingPositions;
 
         private Token figureSelectionToken = new Token();
         private Token figureMovementToken = new Token();
@@ -59,14 +55,17 @@ namespace chess {
         private List<List<Field>> board;
 
         private List<FieldInfo> fields;
+        private List<PieceInfo> pieces;
 
         private bool isWhiteTurn = true;
 
         private void Start() {
+            pieces = new List<PieceInfo>();
             selectedFigureMovePositions = new List<Vector3>();
-            passantPositions = new Dictionary<Position, Position>();
             board = new List<List<Field>>();
             fields = new List<FieldInfo>();
+            picker.moveEvent.handler.Register(figureMovementToken, MakeFigureTurn);
+            picker.pickEvent.handler.Register(figureSelectionToken, SelectFigure);
             if (loadGameOnStart) {
                 LoadBoard();
                 return;
@@ -107,26 +106,34 @@ namespace chess {
                             }
                         }
                     }
-                    bool isWhite = false;
                     if (j < 3) {
-                        isWhite = true;
+                        figure.isWhite = true;
                     }
                     row.Add(new Field {
                         position = position,
                         figure = figure,
-                        isWhite = isWhite,
                         isFilled = isFilled
                     });
                 }
                 board.Add(row);
             }
-            picker.moveEvent.handler.Register(figureMovementToken, MakeFigureTurn);
-            picker.pickEvent.handler.Register(figureSelectionToken, SelectFigure);
             GenerateFigures();
         }
 
-        public void TransformFigureInto(GameObject prefab) {
-
+        public void TransformFigureInto(int type) {
+            Vector3 position = selectedPiece.gameObject.transform.localPosition;
+            int x = Mathf.RoundToInt(selectedPiece.gameObject.transform.localPosition.x);
+            int y = Mathf.RoundToInt(selectedPiece.gameObject.transform.localPosition.z);
+            board[x][y].figure.figureType = (FigureType)type;
+            var newFigure = Instantiate(prefabs[type], figureParent);
+            newFigure.transform.localPosition = position;
+            PieceInfo piece = new PieceInfo() {
+                gameObject = newFigure,
+                figureCollider = newFigure.GetComponent<Collider>()
+            };
+            Destroy(selectedPiece.gameObject);
+            pieces.Remove(selectedPiece);
+            pieces.Add(piece);
         }
 
         private void SelectFigure(FigPickEvent e) {
@@ -136,14 +143,15 @@ namespace chess {
                     1,
                     selectedPiece.gameObject.transform.localPosition.z);
                 MoveFigure(selectedPiece.gameObject, endPos);
-                DeselectFigure(selectedPiece);
+                selectedFigureMovePositions.Clear();
+                ReturnMaterials();
             }
             var pickedFigurePosition = e.figure.transform.localPosition;
             var figurePosition = new Position {
                 x = Mathf.RoundToInt(pickedFigurePosition.x),
                 y = Mathf.RoundToInt(pickedFigurePosition.z),
             };
-            if(board[figurePosition.x][figurePosition.y].isWhite != isWhiteTurn) {
+            if (board[figurePosition.x][figurePosition.y].figure.isWhite != isWhiteTurn) {
                 return;
             }
             var figureObject = e.figure;
@@ -158,15 +166,20 @@ namespace chess {
                     z = position.y
                 });
             }
-            selectedPiece.gameObject = e.figure;
-            selectedPiece.figureCollider = e.figure.GetComponent<Collider>();
-            selectedPiece.figureCollider.enabled = false;
+            foreach (var piece in pieces) {
+                if (piece.gameObject == e.figure) {
+                    selectedPiece = piece;
+                    break;
+                }
+            }
             ReturnMaterials();
-            ColorizeMoveFields();
-            ColorizeDangerFields();
+            ColorizeFields();
         }
 
         private void MakeFigureTurn(FigMoveEvent e) {
+            if (selectedPiece.gameObject == null) {
+                return;
+            }
             var figureEndPosition = new Position {
                 x = Mathf.RoundToInt(e.position.x),
                 y = Mathf.RoundToInt(e.position.z)
@@ -175,52 +188,136 @@ namespace chess {
                 x = Mathf.RoundToInt(selectedPiece.gameObject.transform.localPosition.x),
                 y = Mathf.RoundToInt(selectedPiece.gameObject.transform.localPosition.z)
             };
-            if (selectedFigureMovePositions.Contains(e.position)) {
-                var endField = board[figureEndPosition.x][figureEndPosition.y];
-                var figureField = board[figureStartPosition.x][figureStartPosition.y];
-                foreach(var row in board) {
-                    foreach(var field in row) {
-                        field.figure.madeMoveJustNow = false;
+            if (!selectedFigureMovePositions.Contains(e.position)) {
+                return;
+            }
+            var endField = board[figureEndPosition.x][figureEndPosition.y];
+            var figureField = board[figureStartPosition.x][figureStartPosition.y];
+
+            if (endField.isFilled) {
+                if (endField.figure.isWhite != figureField.figure.isWhite) {
+                    DestroyPiece(e.position);
+                }
+            }
+
+            if (figureField.figure.figureType == FigureType.Pawn) {
+                var passants = Chess.GetPawnEnPassants(figureField.position, board);
+                foreach (var pass in passants) {
+                    if (figureEndPosition == pass.Key) {
+                        var enemyPosition = new Vector3(pass.Value.x, 1, pass.Value.y);
+                        DestroyPiece(enemyPosition);
+
                     }
                 }
-                endField.figure = figureField.figure;
-                endField.figure.madeMoveJustNow = true;
-                endField.figure.movesCount += 1;
-                endField.isFilled = true;
-                endField.isWhite = figureField.isWhite;
-                figureField.isFilled = false;
-                figureField.figure.madeMoveJustNow = false;
-                figureField.figure.figureType = FigureType.None;
-                MoveFigure(selectedPiece.gameObject, e.position);
-                DeselectFigure(selectedPiece);
-                ReturnMaterials();
-                isWhiteTurn = !isWhiteTurn;
-            } else {
-                return;
+                if(figureEndPosition.y > 6 || figureEndPosition.y < 1) {
+                    onPawnTransformation?.Invoke();
+                }
+            }
+            if (figureField.figure.figureType == FigureType.King) {
+                var castlings = Chess.GetCastlingPositions(figureField.position, board);
+                foreach (var castling in castlings) {
+                    if (castling.Key == figureEndPosition) {
+                        Vector3 rookPos = new Vector3(castling.Value.x, 1, castling.Value.y);
+                        foreach (var piece in pieces) {
+                            if (Vector3.Distance(piece.gameObject.transform.localPosition, rookPos) < 0.2) {
+                                Vector3 rookEndPosition;
+                                if (castling.Key.x == 2) {
+                                    rookEndPosition = new Vector3(castling.Key.x + 1, 1, castling.Key.y);
+                                } else {
+                                    rookEndPosition = new Vector3(castling.Key.x - 1, 1, castling.Key.y);
+                                }
+                                board[castling.Value.x][castling.Value.y].isFilled = false;
+                                board[castling.Value.x][castling.Value.y].figure.figureType
+                                    = FigureType.None;
+                                Position rookEnd = new Position {
+                                    x = (int)rookEndPosition.x,
+                                    y = (int)rookEndPosition.z
+                                };
+                                board[rookEnd.x][rookEnd.y].figure.figureType = FigureType.Rook;
+                                board[rookEnd.x][rookEnd.y].isFilled = true;
+                                MoveFigure(piece.gameObject, rookEndPosition);
+                                break;
+                            }
+                        }
+
+                    }
+                }
+            }
+            foreach (var row in board) {
+                foreach (var field in row) {
+                    field.figure.madeMoveJustNow = false;
+                }
+            }
+            endField.figure = figureField.figure;
+            endField.figure.madeMoveJustNow = true;
+            endField.figure.movesCount = figureField.figure.movesCount + 1;
+            endField.isFilled = true;
+            figureField.isFilled = false;
+            figureField.figure.madeMoveJustNow = false;
+            figureField.figure.figureType = FigureType.None;
+            figureField.figure.movesCount = 0;
+            MoveFigure(selectedPiece.gameObject, e.position);
+            selectedFigureMovePositions.Clear();
+            ReturnMaterials();
+            isWhiteTurn = !isWhiteTurn;
+            ToggleColliders();
+            CheckSituation();
+        }
+
+        private void CheckSituation() {
+            var gameSituation = Chess.GetGameSituation(isWhiteTurn, board);
+            switch (gameSituation) {
+                case GameSituation.Nothing: {
+                        onNoCheck?.Invoke();
+                        break;
+                    }
+                case GameSituation.Check: {
+                        onCheck?.Invoke();
+                        break;
+                    }
+                case GameSituation.Stalemate: {
+                        onStalemate?.Invoke();
+                        break;
+                    }
+                case GameSituation.Mate: {
+                        onMate?.Invoke();
+                        break;
+                    }
             }
         }
 
+        private void DestroyPiece(Vector3 position) {
+            foreach (var piece in pieces) {
+                if (Vector3.Distance(position, piece.gameObject.transform.localPosition) < 0.2f) {
+                    Destroy(piece.gameObject);
+                    pieces.Remove(piece);
+                    board[(int)position.x][(int)position.z].figure.figureType = FigureType.None;
+                    board[(int)position.x][(int)position.z].isFilled = false;
+                    break;
+                }
+            }
+        }
+
+        private void ToggleColliders() {
+            foreach (var piece in pieces) {
+                int x = Mathf.RoundToInt(piece.gameObject.transform.localPosition.x);
+                int y = Mathf.RoundToInt(piece.gameObject.transform.localPosition.z);
+                var field = board[x][y];
+                bool isRightColor = field.figure.isWhite == isWhiteTurn;
+                piece.figureCollider.enabled = isRightColor;
+            }
+        }
         private void MoveFigure(GameObject figure, Vector3 endPosition) {
-            if (figure.gameObject.TryGetComponent(out FigureMover mover)) {
+            if (figure.TryGetComponent(out FigureMover mover)) {
                 mover.endPosition = endPosition;
                 mover.enabled = true;
             } else {
-                var moverComponent = figure.gameObject.AddComponent<FigureMover>();
+                var moverComponent = figure.AddComponent<FigureMover>();
                 moverComponent.endPosition = endPosition;
             }
         }
 
-        private void CheckForCheck() {
-
-        }
-
-
-
-        private void ColorizeDangerFields() {
-
-        }
-
-        private void ColorizeMoveFields() {
+        private void ColorizeFields() {
             int count = -1;
             foreach (var pos in selectedFigureMovePositions) {
                 count++;
@@ -231,43 +328,84 @@ namespace chess {
                         var fieldObj = Instantiate(fieldPrefab, fieldParent);
                         fieldObj.transform.localPosition = fieldPos;
                         var fieldInfo = fieldObj.GetComponent<FieldInfo>();
-                        fieldInfo.renderer.material = positionMaterial;
+
                         fields.Add(fieldInfo);
                     }
+                }
+                fields[count].transform.localPosition = fieldPos;
+                if (board[(int)pos.x][(int)pos.z].isFilled) {
+                    fields[count].renderer.material = dangerMaterial;
                 } else {
-                    fields[count].transform.localPosition = fieldPos;
+
+                    fields[count].renderer.material = positionMaterial;
                 }
             }
         }
 
         private void ReturnMaterials() {
             foreach (var field in fields) {
-                field.gameObject.transform.Translate(Vector3.down);
+                field.gameObject.transform.localPosition = new Vector3(
+                    field.gameObject.transform.localPosition.x,
+                    -0.2f,
+                    field.gameObject.transform.localPosition.y);
             }
         }
 
-        private void DeselectFigure(PieceInfo piece) {
-            piece.figureCollider.enabled = true;
-            piece.gameObject = null;
-        }
-
-
-
-
         public void SaveBoard() {
-
+            var state = new GameState {
+                board = board,
+                isWhiteTurn = isWhiteTurn
+            };
+            var result = Reflect.ToJSON(state, true);
+            string resultStr = Jonson.Generate(result);
+            var path = Application.persistentDataPath + "/save.txt";
+            if (!File.Exists(path)) {
+                var file = File.Create(path);
+                file.Close();
+            }
+            var writer = new StreamWriter(path, false);
+            writer.Write(resultStr);
+            writer.Close();
         }
 
         public void LoadBoard() {
+            if (selectedPiece.gameObject != null) {
+                selectedPiece.gameObject = null;
+            }
 
+            string path = Application.persistentDataPath + "/save.txt";
+            if (!File.Exists(path)) {
+                return;
+            }
+            var reader = new StreamReader(path);
+            string readResult = reader.ReadToEnd();
+            reader.Close();
+            var state = new GameState();
+            Result<JSONType, JSONError> stateRes = Jonson.Parse(readResult, 1024);
+            if (stateRes.IsErr()) {
+                return;
+            }
+            state = Reflect.FromJSON(state, stateRes.AsOk());
+            isWhiteTurn = state.isWhiteTurn;
+            board = state.board;
+            foreach (var piece in pieces) {
+                Destroy(piece.gameObject);
+            }
+            pieces.Clear();
+            GenerateFigures();
+            ReturnMaterials();
+            CheckSituation();
         }
 
         private void GenerateFigures() {
             foreach (var row in board) {
                 foreach (var field in row) {
                     if (field.isFilled) {
+                        if (field.figure.figureType == FigureType.None) {
+                            continue;
+                        }
                         Material material;
-                        if (field.isWhite) {
+                        if (field.figure.isWhite) {
                             material = whiteMaterial;
                         } else {
                             material = blackMaterial;
@@ -283,9 +421,15 @@ namespace chess {
                             1,
                             field.position.y
                         );
+                        PieceInfo piece = new PieceInfo() {
+                            gameObject = figure,
+                            figureCollider = figure.GetComponent<Collider>()
+                        };
+                        pieces.Add(piece);
                     }
                 }
             }
+            ToggleColliders();
         }
 
         public void ReloadGame() {
