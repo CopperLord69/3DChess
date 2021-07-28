@@ -433,6 +433,7 @@ namespace chess {
         }
 
         public void ReloadGame() {
+            loadGameOnStart = false;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 

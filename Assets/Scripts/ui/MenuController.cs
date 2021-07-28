@@ -3,6 +3,7 @@ using UnityEngine;
 namespace ui.controllers {
     public class MenuController : MonoBehaviour {
 
+
         [SerializeField]
         private GameObject menu;
 
@@ -11,6 +12,10 @@ namespace ui.controllers {
 
         [SerializeField]
         private FigurePicker figurePicker;
+        private void Start() {
+            figurePicker.enabled = true;
+            Time.timeScale = 1;
+        }
 
         private void Update() {
             if (Input.GetKeyDown(KeyCode.Escape)) {
